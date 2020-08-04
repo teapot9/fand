@@ -1,0 +1,38 @@
+# Example configuration file for fand
+
+# DEFAULT section, mandatory
+[DEFAULT]
+
+# List shelves, comma separated, mandatory
+# Each shelf must have a section with its name
+shelves = shelf1, shelf2
+
+# Default hdd_temps configuration
+# Dictionnary: `temperature in deg C: speed in percentage`
+# Example here: if the drive is at 37 deg C, corresponding speed is 30%
+#               if the drive is at 30 deg C, corresponding speed is 25%
+#               if the drive is < 37 deg C, corresponding speed is 25%
+hdd_temps = 0: 25, 37: 30, 38: 40, 39: 50, 40: 75, 41: 100
+
+# Configuration for shelf shelf1
+[shelf1]
+
+# List of devices in shelf shelf1, mandatory, newline separated
+# Each line is `serial; position`
+# serial: serial number of the device
+# position: position information about the drive, used to help locate it
+devices = AD7E4EE5B03693D6; drive 1,1
+          F63414EF35A424FB; drive 1,2
+	  C198DB33426BE180; system drive
+
+# Configuration for shelf shelf2
+[shelf2]
+
+# List of devices
+devices = 062110D2532377B5; small drive 2,1
+          FFBEB97C6ED5953B; system drive
+
+# Override hdd_temps for this shelf
+# This configuration will be used for this shelf only
+hdd_temps = 0: 40, 37: 50, 38: 60, 39: 75, 40: 85, 41: 100
+

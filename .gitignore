@@ -1,0 +1,11 @@
+# cache
+__pycache__/
+
+# virtualenv
+/.env/
+
+# packaging
+*.egg-info/
+/dist/
+/build/
+
