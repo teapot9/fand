@@ -74,16 +74,35 @@ class GpioRpm:
         self.__gpio.close()
 
 
-def set_pwm(gpio_device, value):
-    """Set PWM value for gpiozero.PWMLED object"""
-    logger.info("Setting PWM value for %s to %s", gpio_device, value)
-    try:
-        gpio_device.value = value / 100
-    except gpiozero.GPIOZeroError:
-        logger.exception("Failed to set PWM value for %s", gpio_device)
-        util.terminate("Cannot continue after GPIO failure")
-    except gpiozero.GPIOZeroWarning as warning:
-        logger.warning("Ignoring GPIO warning %s for %s", warning, gpio_device)
+class GpioPwm:
+    """Class to handle PWM output for a fan
+    Attributes:
+    pwm: PWM value, in percentage
+    __gpio: gpiozero.PWMLED object for the PWM output
+    """
+    def __init__(self, pin):
+        """Constructor (does not handle gpiozero exceptions)
+        pin: GPIO pin number to use
+        """
+        self.__pin = pin
+        self.__gpio = gpiozero.PWMLED(pin, frequency=25000, active_high=True,
+                                      initial_value=1)
+        GPIO_DEVICES.append(self)
+        logger.info("Created GPIO PWM device on pin %s", pin)
+
+    def __str__(self):
+        return f"PWM on GPIO{self.__pin}"
+
+    @property
+    def pwm(self):
+        """PWM output value, backend is gpiozero.PWMLED.value"""
+        return self.__gpio.value * 100
+
+    @pwm.setter
+    def pwm(self, value):
+        if value > 100 or value < 0:
+            raise ValueError("PWM value must be between 0 and 100")
+        self.__gpio.value = value / 100
 
 
 def main():
@@ -103,8 +122,7 @@ def main():
 
     # GPIO PWM
     try:
-        gpio_pwm = gpiozero.PWMLED(args.pwmpin, frequency=25000,
-                                   active_high=True, initial_value=1)
+        gpio_pwm = GpioPwm(args.pwmpin)
     except gpiozero.GPIOZeroError:
         logger.exception("Failed to create GPIO PWM object")
         util.terminate("Cannot continue without GPIO PWM object")
@@ -163,7 +181,17 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
                          server_shelf_name, server)
             server = reconnect(server)
         else:
-            set_pwm(gpio_pwm, pwm_value)
+            try:
+                gpio_pwm.pwm = pwm_value
+            except gpiozero.GPIOZeroError:
+                logger.exception("Failed to set PWM value for %s", gpio_pwm)
+                util.terminate("Cannot continue after GPIO failure")
+            except gpiozero.GPIOZeroWarning as warning:
+                logger.warning("Ignoring GPIO warning %s for %s",
+                               warning, gpio_pwm)
+            except ValueError:
+                logger.exception("Unexpected PWM value from %s: %s",
+                                 server, pwm_value)
 
         logger.debug("Updating RPM")
         gpio_rpm.update()
