@@ -4,6 +4,17 @@ Control fan speed according to drive temperatures.
 
 ## Introduction
 
+The purpose of this program is to allow controlling the fan speed of a server
+from another one.
+One server checks drive temperatures.
+Multiple clients ask the fan speed they should set and use PWM to change it.
+
+This program also wants to be cross-platform.
+It should work with Linux and FreeBSD, as they are the platform used for
+testing.
+While they have not been tested, it should also works on
+\*BSD, Mac OS and Windows.
+
 This program contain multiples modules:
  * server: daemon monitoring drives
     * listen for connection from clients and answer their requests
@@ -124,4 +135,33 @@ Non-python dependencies for modules:
  * server:
    * [smartmontools](https://www.smartmontools.org/):
      pySMART's backend
+
+## Installation
+
+### Server
+
+Install smartmontools on your system with your prefered package manager.
+
+Install fand with:
+```pip install fand[server]```
+
+### Fand controller (fanctl)
+
+Install fand with:
+```pip install fand```
+
+### Raspberry Pi client
+
+Install fand with one of the following commands:
+ * Install with RPi.GPIO:
+   ```pip install fand[clientrpi,clientrpi-rpi-gpio]```
+ * Install with pigpio:
+   ```pip install fand[clientrpi,clientrpi-pigpio]```
+ * Install with RPIO:
+   ```pip install fand[clientrpi,clientrpi-rpio]```
+
+### Custom installation
+
+You can cumulate the extra dependencies if you want multiple modules.
+```pip install fand[server,clientrpi]```
 
