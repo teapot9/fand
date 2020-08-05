@@ -55,4 +55,6 @@ setuptools.setup(
         "Topic :: System :: Hardware",
         "Topic :: System :: Monitoring",
     ],
+    keyworks=['fan-control', 'daemon', 'hardware', 'raspberry-pi', 'gpio',
+              'monitoring', 'temperature-monitoring', 'pysmart', 'gpiozero'],
 )
