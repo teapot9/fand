@@ -29,10 +29,8 @@ def _terminate():
     for device in GPIO_DEVICES.copy():
         try:
             device.close()
-        except gpiozero.GPIOZeroError:
+        except GpioError:
             logger.exception("Failed to close GPIO %s", device)
-        except gpiozero.GPIOZeroWarning as warning:
-            logger.warning("Ignoring GPIO warning %s", warning)
         GPIO_DEVICES.remove(device)
 
 
@@ -49,8 +47,13 @@ class GpioRpm:
         pin: GPIO pin number to use
         """
         self.__pin = pin
-        self.__gpio = gpiozero.Button(pin, pull_up=True)
-        self.__gpio.when_pressed = self.pressed
+        try:
+            self.__gpio = gpiozero.Button(pin, pull_up=True)
+            self.__gpio.when_pressed = self.pressed
+        except gpiozero.GPIOZeroError as error:
+            raise GpioError from error
+        except gpiozero.GPIOZeroWarning as warning:
+            logger.warning("Ignoring GPIO warning %s", warning)
         self.__count, self.__start_time = 0, time.time()
         self.rpm = 0
         GPIO_DEVICES.append(self)
@@ -71,7 +74,12 @@ class GpioRpm:
 
     def close(self):
         """Close the GPIO device"""
-        self.__gpio.close()
+        try:
+            self.__gpio.close()
+        except gpiozero.GPIOZeroError as error:
+            raise GpioError from error
+        except gpiozero.GPIOZeroWarning as warning:
+            logger.warning("Ignoring GPIO warning %s", warning)
 
 
 class GpioPwm:
@@ -85,8 +93,13 @@ class GpioPwm:
         pin: GPIO pin number to use
         """
         self.__pin = pin
-        self.__gpio = gpiozero.PWMLED(pin, frequency=25000, active_high=True,
-                                      initial_value=1)
+        try:
+            self.__gpio = gpiozero.PWMLED(pin, frequency=25000,
+                                          active_high=True, initial_value=1)
+        except gpiozero.GPIOZeroError as error:
+            raise GpioError from error
+        except gpiozero.GPIOZeroWarning as warning:
+            logger.warning("Ignoring GPIO warning %s", warning)
         GPIO_DEVICES.append(self)
         logger.info("Created GPIO PWM device on pin %s", pin)
 
@@ -102,7 +115,16 @@ class GpioPwm:
     def pwm(self, value):
         if value > 100 or value < 0:
             raise ValueError("PWM value must be between 0 and 100")
-        self.__gpio.value = value / 100
+        try:
+            self.__gpio.value = value / 100
+        except gpiozero.GPIOZeroError as error:
+            raise GpioError from error
+        except gpiozero.GPIOZeroWarning as warning:
+            logger.warning("Ignoring GPIO warning %s", warning)
+
+
+class GpioError(gpiozero.GPIOZeroError):
+    """Wrapper for gpiozero.GPIOZeroError exception"""
 
 
 def main():
@@ -123,20 +145,16 @@ def main():
     # GPIO PWM
     try:
         gpio_pwm = GpioPwm(args.pwmpin)
-    except gpiozero.GPIOZeroError:
+    except GpioError:
         logger.exception("Failed to create GPIO PWM object")
         util.terminate("Cannot continue without GPIO PWM object")
-    except gpiozero.GPIOZeroWarning as warning:
-        logger.warning("Ignoring GPIO warning %s for %s", warning, gpio_pwm)
     logger.debug("Created PWM GPIO device %s", gpio_pwm)
     # GPIO RPM
     try:
         gpio_rpm = GpioRpm(args.rpmpin)
-    except gpiozero.GPIOZeroError:
+    except GpioError:
         logger.exception("Failed to create GPIO RPM object")
         util.terminate("Cannot continue without GPIO RPM object")
-    except gpiozero.GPIOZeroWarning as warning:
-        logger.warning("Ignoring GPIO warning %s for %s", warning, gpio_rpm)
     logger.debug("Created RPM GPIO device %s", gpio_rpm)
 
     start(gpio_pwm, gpio_rpm, shelf_name=args.name,
@@ -183,12 +201,9 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
         else:
             try:
                 gpio_pwm.pwm = pwm_value
-            except gpiozero.GPIOZeroError:
+            except GpioError:
                 logger.exception("Failed to set PWM value for %s", gpio_pwm)
                 util.terminate("Cannot continue after GPIO failure")
-            except gpiozero.GPIOZeroWarning as warning:
-                logger.warning("Ignoring GPIO warning %s for %s",
-                               warning, gpio_pwm)
             except ValueError:
                 logger.exception("Unexpected PWM value from %s: %s",
                                  server, pwm_value)
