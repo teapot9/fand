@@ -13,6 +13,8 @@ REQ_GET_PWM = 'get_pwm'
 REQ_SET_PWM = 'set_pwm'
 REQ_GET_RPM = 'get_rpm'
 REQ_SET_RPM = 'set_rpm'
+REQ_SET_PWM_OVERRIDE = 'set_pwm_override'
+REQ_SET_PWM_EXPIRE = 'set_pwm_expire'
 
 # Header = magic number + data size
 HEADER_MAGIC = b'99F9'

@@ -3,6 +3,7 @@
 import argparse
 import concurrent.futures
 import configparser
+import datetime
 import logging
 import os
 import signal
@@ -79,6 +80,8 @@ class Shelf:
             raise ValueError("hdd_temps has no 0 deg C key")
         self.pwm = 100
         self.rpm = 0
+        self.pwm_override = None
+        self.pwm_expire = None
 
     def __str__(self):
         return self.identifier
@@ -97,6 +100,8 @@ class Shelf:
     @property
     def pwm(self):
         """Shelf PWM value, percentage"""
+        if self.pwm_override is not None:
+            return self.pwm_override
         return self.__pwm
 
     @pwm.setter
@@ -104,6 +109,40 @@ class Shelf:
         if speed < 0 or speed > 100:
             raise ValueError("PWM must be between 0 and 100")
         self.__pwm = speed
+
+    @property
+    def pwm_override(self):
+        """Override PWM value for the shelf, percentage"""
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if self.pwm_expire is not None and self.pwm_expire <= now:
+            return None
+        return self.__pwm_override
+
+    @pwm_override.setter
+    def pwm_override(self, speed):
+        if speed is not None and (speed < 0 or speed > 100):
+            raise ValueError("PWM must be between 0 and 100")
+        self.__pwm_override = speed
+
+    @property
+    def pwm_expire(self):
+        """Set the PWM override expiration date
+        Contains a datetime.datetime object, defaults to local timezone
+        """
+        return self.__pwm_expire
+
+    @pwm_expire.setter
+    def pwm_expire(self, date=None):
+        if date is None:
+            self.__pwm_expire = date
+            return
+        if date.tzinfo is None:
+            localtz = datetime.datetime.now().astimezone().tzinfo
+            date = date.replace(tzinfo=localtz)
+        now = datetime.datetime.now(date.tzinfo)
+        if date < now:
+            raise ValueError(f"Expiration {date} is before now {now}")
+        self.__pwm_expire = date
 
     def __iter_hdd(self):
         """Iterate over accessible HDD"""
@@ -203,11 +242,51 @@ def _handle_set_rpm(client_socket, shelf_id, speed):
         com.reset_connection(client_socket)
 
 
+def _handle_set_pwm_override(client_socket, shelf_id, speed):
+    """Handle the request to override PWM value of a shelf"""
+    logger.info("Received request to override PWM to %s%% from %s for %s",
+                speed, client_socket, shelf_id)
+    try:
+        __SHELVES__[shelf_id].pwm_override = speed
+        com.send(client_socket, com.REQ_ACK)
+    except (TimeoutError, ConnectionError):
+        logger.exception("Failed to send ack to %s", client_socket)
+        com.reset_connection(client_socket)
+    except KeyError:
+        logger.exception("Shelf %s not found", shelf_id)
+        com.reset_connection(client_socket)
+    except ValueError:
+        logger.exception("Wrong value %s received", speed)
+        com.reset_connection(client_socket)
+
+
+def _handle_set_pwm_expire(client_socket, shelf_id, date):
+    """Handle the request to set the expiration date of the PWM override of
+    a shelf
+    """
+    logger.info("Received set PWM override expiration of %s to %s from %s",
+                shelf_id, date, client_socket)
+    try:
+        __SHELVES__[shelf_id].pwm_expire = date
+        com.send(client_socket, com.REQ_ACK)
+    except (TimeoutError, ConnectionError):
+        logger.exception("Failed to send ack to %s", client_socket)
+        com.reset_connection(client_socket)
+    except KeyError:
+        logger.exception("Shelf %s not found", shelf_id)
+        com.reset_connection(client_socket)
+    except ValueError:
+        logger.exception("Wrong value %s received", date)
+        com.reset_connection(client_socket)
+
+
 REQUEST_HANDLERS = {
     com.REQ_PING: _handle_ping,
     com.REQ_GET_PWM: _handle_get_pwm,
     com.REQ_GET_RPM: _handle_get_rpm,
     com.REQ_SET_RPM: _handle_set_rpm,
+    com.REQ_SET_PWM_OVERRIDE: _handle_set_pwm_override,
+    com.REQ_SET_PWM_EXPIRE: _handle_set_pwm_expire,
 }
 
 

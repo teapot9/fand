@@ -98,6 +98,12 @@ Example of command lines:
  - `fanctl ping` ping the server, use default configuration
  - `fanctl -a 10.0.1.4 shelfpwm myshelf` get the shelf PWM percentage of
    the shelf named "myshelf"
+ - `fanctl shelfpwm-override myshelf 50` forces myshelf to set its fans to 50%
+ - `fanctl shelfpwm-expire-in myshelf 40` will make the override expire in 40s
+ - `fanctl shelfpwm-expire-in myshelf 3h10m` will make the override expire
+   in 3 hours and 10 minutes
+ - `fanctl shelfpwm-expire-on myshelf 2020-08-06T20:00:00` will make the
+   override expire at 20:00:00 on the 6 aug 2020
 
 ## Dependencies
 
