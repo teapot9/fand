@@ -164,9 +164,9 @@ def main():
 def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
           address=socket.gethostname(), port=9999):
     """Main function of this module"""
-    def reconnect(server, error=None):
+    def reconnect(server, error=None, notice=True):
         try:
-            com.reset_connection(server, error)
+            com.reset_connection(server, error, notice=notice)
             new_server = com.connect(address, port)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to connect to %s:%s", address, port)
@@ -187,7 +187,7 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
             server_shelf_name, pwm_value = args
         except ConnectionResetError:
             logger.info("Connection reset by %s", server)
-            server = reconnect(server)
+            server = reconnect(server, notice=False)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to get PWM value from %s", server)
             server = reconnect(server)
@@ -221,7 +221,7 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
             req, args = com.recv(server)
         except ConnectionResetError:
             logger.info("Connection reset by %s", server)
-            server = reconnect(server)
+            server = reconnect(server, notice=False)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to get RPM value from %s", server)
             server = reconnect(server)

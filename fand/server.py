@@ -184,7 +184,7 @@ def _handle_ping(client_socket):
         com.send(client_socket, com.Request.ACK)
     except ConnectionResetError:
         logger.info("Connection reset by %s", client_socket)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, notice=False)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to answer ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -198,7 +198,7 @@ def _handle_get_pwm(client_socket, shelf_id):
         com.send(client_socket, com.Request.SET_PWM, shelf_id, pwm)
     except ConnectionResetError:
         logger.info("Connection reset by %s", client_socket)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, notice=False)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send pwm to %s", client_socket)
         com.reset_connection(client_socket)
@@ -215,7 +215,7 @@ def _handle_get_rpm(client_socket, shelf_id):
         com.send(client_socket, com.Request.SET_RPM, shelf_id, rpm)
     except ConnectionResetError:
         logger.info("Connection reset by %s", client_socket)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, notice=False)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send rpm to %s", client_socket)
         com.reset_connection(client_socket)
@@ -233,7 +233,7 @@ def _handle_set_rpm(client_socket, shelf_id, speed):
         com.send(client_socket, com.Request.ACK)
     except ConnectionResetError:
         logger.info("Connection reset by %s", client_socket)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, notice=False)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -254,7 +254,7 @@ def _handle_set_pwm_override(client_socket, shelf_id, speed):
         com.send(client_socket, com.Request.ACK)
     except ConnectionResetError:
         logger.info("Connection reset by %s", client_socket)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, notice=False)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -277,7 +277,7 @@ def _handle_set_pwm_expire(client_socket, shelf_id, date):
         com.send(client_socket, com.Request.ACK)
     except ConnectionResetError:
         logger.info("Connection reset by %s", client_socket)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, notice=False)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -310,7 +310,7 @@ def listen_client(client_socket):
             continue
         except ConnectionResetError:
             logger.info("Connection reset by %s", client_socket)
-            com.reset_connection(client_socket)
+            com.reset_connection(client_socket, notice=False)
             continue
         except ConnectionError:
             logger.exception("Connection error from %s", client_socket)

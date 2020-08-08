@@ -117,15 +117,17 @@ def connect(address, port):
     return server
 
 
-def reset_connection(client_socket, error_msg=None):
+def reset_connection(client_socket, error_msg=None, notice=True):
     """Closes a connection to a client
     error: error to send (string, exception)
+    notice: send a notice about the reset to the remote socket
     """
     logger.info("Closing connection to %s", client_socket)
     if client_socket not in SOCKETS:
         return
     try:
-        send(client_socket, Request.DISCONNECT, error_msg)
+        if notice:
+            send(client_socket, Request.DISCONNECT, error_msg)
     except OSError as error:
         logger.warning("Could not notify %s of disconnection because %s",
                        client_socket, error)
