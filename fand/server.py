@@ -78,9 +78,9 @@ class Shelf:
         if not hdd_temps.get(0):
             logger.critical("hdd_temps has no 0 deg C key: %s", hdd_temps)
             raise ValueError("hdd_temps has no 0 deg C key")
-        self.pwm = 100
+        self.__pwm = 100
         self.rpm = 0
-        self.pwm_override = None
+        self.__pwm_override = None
         self.pwm_expire = None
 
     def __str__(self):
@@ -99,27 +99,18 @@ class Shelf:
 
     @property
     def pwm(self):
-        """Shelf PWM value, percentage"""
-        if self.pwm_override is not None:
-            return self.pwm_override
+        """Get shelf PWM value
+        Reading get the effective PWM value
+        Changing override the PWM value
+        """
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if ((self.__pwm_override is not None and self.__pwm_expire is None) or
+                (self.__pwm_override is not None and self.__pwm_expire > now)):
+            return self.__pwm_override
         return self.__pwm
 
     @pwm.setter
-    def pwm(self, speed):
-        if speed < 0 or speed > 100:
-            raise ValueError("PWM must be between 0 and 100")
-        self.__pwm = speed
-
-    @property
-    def pwm_override(self):
-        """Override PWM value for the shelf, percentage"""
-        now = datetime.datetime.now(datetime.timezone.utc)
-        if self.pwm_expire is not None and self.pwm_expire <= now:
-            return None
-        return self.__pwm_override
-
-    @pwm_override.setter
-    def pwm_override(self, speed):
+    def pwm(self, speed=None):
         if speed is not None and (speed < 0 or speed > 100):
             raise ValueError("PWM must be between 0 and 100")
         self.__pwm_override = speed
@@ -182,8 +173,8 @@ class Shelf:
                 break
 
         # Get final PWM speed
-        self.pwm = max(pwm_list)
-        logger.info("PWM speed for shelf %s is %s", self, self.pwm)
+        self.__pwm = max(pwm_list)
+        logger.info("PWM speed for shelf %s is %s", self, self.__pwm)
 
 
 def _handle_ping(client_socket):
@@ -247,7 +238,7 @@ def _handle_set_pwm_override(client_socket, shelf_id, speed):
     logger.info("Received request to override PWM to %s%% from %s for %s",
                 speed, client_socket, shelf_id)
     try:
-        __SHELVES__[shelf_id].pwm_override = speed
+        __SHELVES__[shelf_id].pwm = speed
         com.send(client_socket, com.REQ_ACK)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send ack to %s", client_socket)
