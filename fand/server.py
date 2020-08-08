@@ -204,7 +204,7 @@ def _handle_get_pwm(client_socket, shelf_id):
         com.reset_connection(client_socket)
     except KeyError:
         logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Shelf not found")
 
 
 def _handle_get_rpm(client_socket, shelf_id):
@@ -221,7 +221,7 @@ def _handle_get_rpm(client_socket, shelf_id):
         com.reset_connection(client_socket)
     except KeyError:
         logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Shelf not found")
 
 
 def _handle_set_rpm(client_socket, shelf_id, speed):
@@ -239,10 +239,10 @@ def _handle_set_rpm(client_socket, shelf_id, speed):
         com.reset_connection(client_socket)
     except KeyError:
         logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Shelf not found")
     except ValueError:
         logger.exception("Wrong speed value %s received", speed)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Wrong speed value")
 
 
 def _handle_set_pwm_override(client_socket, shelf_id, speed):
@@ -260,10 +260,10 @@ def _handle_set_pwm_override(client_socket, shelf_id, speed):
         com.reset_connection(client_socket)
     except KeyError:
         logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Shelf not found")
     except ValueError:
         logger.exception("Wrong value %s received", speed)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Shelf not found")
 
 
 def _handle_set_pwm_expire(client_socket, shelf_id, date):
@@ -283,10 +283,10 @@ def _handle_set_pwm_expire(client_socket, shelf_id, date):
         com.reset_connection(client_socket)
     except KeyError:
         logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Shelf not found")
     except ValueError:
         logger.exception("Wrong value %s received", date)
-        com.reset_connection(client_socket)
+        com.reset_connection(client_socket, "Wrong date value")
 
 
 REQUEST_HANDLERS = {
@@ -319,14 +319,14 @@ def listen_client(client_socket):
         handler = REQUEST_HANDLERS.get(req)
         if handler is None:
             logger.error("Invalid request %s from %s", req, client_socket)
-            com.reset_connection(client_socket)
+            com.reset_connection(client_socket, "Invalid request")
             continue
         try:
             handler(client_socket, *args)
         except TypeError:
             logger.exception("Invalid call to request %s from %s",
                              req, client_socket)
-            com.reset_connection(client_socket)
+            com.reset_connection(client_socket, "Invalid call")
             continue
 
 

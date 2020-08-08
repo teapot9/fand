@@ -96,6 +96,8 @@ def recv(sock):
 
     logger.debug("Received %s from %s with arguments %s", request, sock, args)
     if request == Request.DISCONNECT:
+        if len(args) >= 1 and args[0] is not None:
+            logger.error("Error: %s from socket %s", args[0], sock)
         raise ConnectionResetError(f"Connection reset by {sock}")
     return (request, args)
 
@@ -115,13 +117,15 @@ def connect(address, port):
     return server
 
 
-def reset_connection(client_socket):
-    """Closes a connection to a client"""
+def reset_connection(client_socket, error_msg=None):
+    """Closes a connection to a client
+    error: error to send (string, exception)
+    """
     logger.info("Closing connection to %s", client_socket)
     if client_socket not in SOCKETS:
         return
     try:
-        send(client_socket, Request.DISCONNECT)
+        send(client_socket, Request.DISCONNECT, error_msg)
     except OSError as error:
         logger.warning("Could not notify %s of disconnection because %s",
                        client_socket, error)

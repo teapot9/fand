@@ -164,9 +164,9 @@ def main():
 def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
           address=socket.gethostname(), port=9999):
     """Main function of this module"""
-    def reconnect(server):
+    def reconnect(server, error=None):
         try:
-            com.reset_connection(server)
+            com.reset_connection(server, error)
             new_server = com.connect(address, port)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to connect to %s:%s", address, port)
@@ -193,15 +193,15 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
             server = reconnect(server)
         except ValueError:
             logger.error("Unexpected data received from %s: %s", server, args)
-            server = reconnect(server)
+            server = reconnect(server, "Unexpected arguments")
         if req != com.Request.SET_PWM:
             logger.error("Unexpected request from %s: expected %s, got %s",
                          server, com.Request.SET_PWM, req)
-            server = reconnect(server)
+            server = reconnect(server, "Unexpected request")
         elif server_shelf_name != shelf_name:
             logger.error("Unexpected shelf name %s received from %s",
                          server_shelf_name, server)
-            server = reconnect(server)
+            server = reconnect(server, "Unexpected shelf")
         else:
             try:
                 gpio_pwm.pwm = pwm_value
@@ -228,7 +228,7 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
         if req != com.Request.ACK:
             logger.error("Unexpected request from %s: expected %s, got %s",
                          server, com.Request.ACK, req)
-            server = reconnect(server)
+            server = reconnect(server, "Unexpected request")
 
         logger.info("Updated: PWM = %s, RPM = %s", pwm_value, gpio_rpm.rpm)
         util.sleep(SLEEP_TIME)
