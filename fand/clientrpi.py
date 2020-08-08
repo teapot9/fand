@@ -167,10 +167,11 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
     def reconnect(server):
         try:
             com.reset_connection(server)
+            new_server = com.connect(address, port)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to connect to %s:%s", address, port)
             util.terminate("Cannot connect to server")
-        return com.connect(address, port)
+        return new_server
     logger.debug("Starting client daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
     signal.signal(signal.SIGTERM, util.default_signal_handler)
@@ -184,6 +185,9 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
             com.send(server, com.Request.GET_PWM, shelf_name)
             req, args = com.recv(server)
             server_shelf_name, pwm_value = args
+        except ConnectionResetError:
+            logger.info("Connection reset by %s", server)
+            server = reconnect(server)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to get PWM value from %s", server)
             server = reconnect(server)
@@ -215,6 +219,9 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
         try:
             com.send(server, com.Request.SET_RPM, shelf_name, gpio_rpm.rpm)
             req, args = com.recv(server)
+        except ConnectionResetError:
+            logger.info("Connection reset by %s", server)
+            server = reconnect(server)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to get RPM value from %s", server)
             server = reconnect(server)

@@ -30,6 +30,7 @@ class Request(enum.Enum):
     """Standard request"""
     ACK = 'ack'
     PING = 'ping'
+    DISCONNECT = 'disconnect'
     GET_PWM = 'get_pwm'
     SET_PWM = 'set_pwm'
     GET_RPM = 'get_rpm'
@@ -54,9 +55,9 @@ def send(sock, request, *args):
     try:
         bytes_sent = sock.send(header_bytes + data_bytes)
     except socket.timeout as error:
-        raise TimeoutError() from error
+        raise TimeoutError(f"Timeout from {sock}") from error
     except OSError as error:
-        raise ConnectionError() from error
+        raise ConnectionError(f"OSError from {sock}") from error
     if bytes_sent != HEADER_SIZE + len(data_bytes):
         raise ConnectionError(f"Not all data sent to {sock}")
 
@@ -65,14 +66,16 @@ def send(sock, request, *args):
 
 def recv(sock):
     """Receive a request from a remote socket"""
-    logger.debug("Waining for data from %s", sock)
+    logger.debug("Waiting for data from %s", sock)
 
     try:
         header = sock.recv(HEADER_SIZE)
     except socket.timeout as error:
-        raise TimeoutError() from error
+        raise TimeoutError(f"Timeout from {sock}") from error
     except OSError as error:
-        raise ConnectionError() from error
+        raise ConnectionError(f"OSError from {sock}") from error
+    if not header:
+        raise ConnectionResetError(f"Nothing received from {sock}")
     if len(header) != HEADER_SIZE:
         raise ConnectionError(f"Invalid header size from {sock}")
 
@@ -85,13 +88,15 @@ def recv(sock):
         data_bytes = sock.recv(data_size)
         request, args = pickle.loads(data_bytes)
     except socket.timeout as error:
-        raise TimeoutError() from error
+        raise TimeoutError(f"Timeout from {sock}") from error
     except OSError as error:
-        raise ConnectionError() from error
+        raise ConnectionError(f"OSError from {sock}") from error
     except (pickle.PickleError, TypeError, ValueError) as error:
         raise ValueError() from error
 
     logger.debug("Received %s from %s with arguments %s", request, sock, args)
+    if request == Request.DISCONNECT:
+        raise ConnectionResetError(f"Connection reset by {sock}")
     return (request, args)
 
 
@@ -115,6 +120,11 @@ def reset_connection(client_socket):
     logger.info("Closing connection to %s", client_socket)
     if client_socket not in SOCKETS:
         return
+    try:
+        send(client_socket, Request.DISCONNECT)
+    except OSError as error:
+        logger.warning("Could not notify %s of disconnection because %s",
+                       client_socket, error)
     try:
         client_socket.shutdown(socket.SHUT_RDWR)
         client_socket.close()

@@ -182,6 +182,9 @@ def _handle_ping(client_socket):
     logger.info("Received REQ_PING from %s", client_socket)
     try:
         com.send(client_socket, com.Request.ACK)
+    except ConnectionResetError:
+        logger.info("Connection reset by %s", client_socket)
+        com.reset_connection(client_socket)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to answer ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -189,12 +192,15 @@ def _handle_ping(client_socket):
 
 def _handle_get_pwm(client_socket, shelf_id):
     """Handle the request to get PWM speed of a shelf"""
-    logger.info("Received REQ_GET_RPM from %s for %s", client_socket, shelf_id)
+    logger.info("Received REQ_GET_PWM from %s for %s", client_socket, shelf_id)
     try:
         pwm = __SHELVES__[shelf_id].pwm
         com.send(client_socket, com.Request.SET_PWM, shelf_id, pwm)
+    except ConnectionResetError:
+        logger.info("Connection reset by %s", client_socket)
+        com.reset_connection(client_socket)
     except (TimeoutError, ConnectionError):
-        logger.exception("Failed to answer ack to %s", client_socket)
+        logger.exception("Failed to send pwm to %s", client_socket)
         com.reset_connection(client_socket)
     except KeyError:
         logger.exception("Shelf %s not found", shelf_id)
@@ -207,6 +213,9 @@ def _handle_get_rpm(client_socket, shelf_id):
     try:
         rpm = __SHELVES__[shelf_id].rpm
         com.send(client_socket, com.Request.SET_RPM, shelf_id, rpm)
+    except ConnectionResetError:
+        logger.info("Connection reset by %s", client_socket)
+        com.reset_connection(client_socket)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send rpm to %s", client_socket)
         com.reset_connection(client_socket)
@@ -222,6 +231,9 @@ def _handle_set_rpm(client_socket, shelf_id, speed):
     try:
         __SHELVES__[shelf_id].rpm = speed
         com.send(client_socket, com.Request.ACK)
+    except ConnectionResetError:
+        logger.info("Connection reset by %s", client_socket)
+        com.reset_connection(client_socket)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -240,6 +252,9 @@ def _handle_set_pwm_override(client_socket, shelf_id, speed):
     try:
         __SHELVES__[shelf_id].pwm = speed
         com.send(client_socket, com.Request.ACK)
+    except ConnectionResetError:
+        logger.info("Connection reset by %s", client_socket)
+        com.reset_connection(client_socket)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -260,6 +275,9 @@ def _handle_set_pwm_expire(client_socket, shelf_id, date):
     try:
         __SHELVES__[shelf_id].pwm_expire = date
         com.send(client_socket, com.Request.ACK)
+    except ConnectionResetError:
+        logger.info("Connection reset by %s", client_socket)
+        com.reset_connection(client_socket)
     except (TimeoutError, ConnectionError):
         logger.exception("Failed to send ack to %s", client_socket)
         com.reset_connection(client_socket)
@@ -290,6 +308,10 @@ def listen_client(client_socket):
         except TimeoutError:
             logger.warning("%s timed out", client_socket)
             continue
+        except ConnectionResetError:
+            logger.info("Connection reset by %s", client_socket)
+            com.reset_connection(client_socket)
+            continue
         except ConnectionError:
             logger.exception("Connection error from %s", client_socket)
             com.reset_connection(client_socket)
@@ -305,6 +327,7 @@ def listen_client(client_socket):
             logger.exception("Invalid call to request %s from %s",
                              req, client_socket)
             com.reset_connection(client_socket)
+            continue
 
 
 def find_config_file():
