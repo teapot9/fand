@@ -78,11 +78,11 @@ def _action_send_raw(server, *args):
 def _action_ping(server):
     """Send ping"""
     logger.debug("Sending ping to %s", server)
-    com.send(server, com.REQ_PING)
+    com.send(server, com.Request.PING)
     req, _ = com.recv(server)
-    if req != com.REQ_ACK:
+    if req != com.Request.ACK:
         logger.error("Unexpected request from server: expected %s, got %s",
-                     com.REQ_ACK, req)
+                     com.Request.ACK, req)
     else:
         print("ok")
 
@@ -90,11 +90,11 @@ def _action_ping(server):
 def _action_get_shelf_pwm(server, shelf_id):
     """Get shelf PWM speed"""
     logger.debug("Sending get pwm to %s for %s", server, shelf_id)
-    com.send(server, com.REQ_GET_PWM, shelf_id)
+    com.send(server, com.Request.GET_PWM, shelf_id)
     req, args = com.recv(server)
-    if req != com.REQ_SET_PWM:
+    if req != com.Request.SET_PWM:
         logger.error("Unexpected request from server: expected %s, got %s",
-                     com.REQ_SET_PWM, req)
+                     com.Request.SET_PWM, req)
     elif args[0] != shelf_id:
         logger.error("Wrong shelf returned by server: expected %s, got %s",
                      shelf_id, args[0])
@@ -105,11 +105,11 @@ def _action_get_shelf_pwm(server, shelf_id):
 def _action_get_shelf_rpm(server, shelf_id):
     """Get shelf RPM speed"""
     logger.debug("Sending get rpm to %s for %s", server, shelf_id)
-    com.send(server, com.REQ_GET_RPM, shelf_id)
+    com.send(server, com.Request.GET_RPM, shelf_id)
     req, args = com.recv(server)
-    if req != com.REQ_SET_RPM:
+    if req != com.Request.SET_RPM:
         logger.error("Unexpected request from server: expected %s, got %s",
-                     com.REQ_SET_RPM, req)
+                     com.Request.SET_RPM, req)
     elif args[0] != shelf_id:
         logger.error("Wrong shelf returned by server: expected %s, got %s",
                      shelf_id, args[0])
@@ -126,11 +126,11 @@ def _action_set_pwm_override(server, shelf_id, value_str):
         value = int(value_str)
     logger.debug("Sending set PWM override to %s for %s to %s",
                  value, shelf_id, server)
-    com.send(server, com.REQ_SET_PWM_OVERRIDE, shelf_id, value)
+    com.send(server, com.Request.SET_PWM_OVERRIDE, shelf_id, value)
     req, _ = com.recv(server)
-    if req != com.REQ_ACK:
+    if req != com.Request.ACK:
         logger.error("Unexpected request from server: expected %s, got %s",
-                     com.REQ_ACK, req)
+                     com.Request.ACK, req)
     else:
         print("ok")
 
@@ -148,11 +148,11 @@ def _action_set_pwm_expire_on(server, shelf_id, date_str):
         raise ValueError(f"Could not convert {date_str} to a datetime object")
     logger.debug("Sending set PWM expire on %s for %s to %s",
                  date, shelf_id, server)
-    com.send(server, com.REQ_SET_PWM_EXPIRE, shelf_id, date)
+    com.send(server, com.Request.SET_PWM_EXPIRE, shelf_id, date)
     req, _ = com.recv(server)
-    if req != com.REQ_ACK:
+    if req != com.Request.ACK:
         logger.error("Unexpected request from server: expected %s, got %s",
-                     com.REQ_ACK, req)
+                     com.Request.ACK, req)
     else:
         print("ok")
 
@@ -178,11 +178,11 @@ def _action_set_pwm_expire_in(server, shelf_id, duration_str):
     date = datetime.datetime.now(datetime.timezone.utc) + duration
     logger.debug("Sending set PWM expire in %s (%s) for %s to %s",
                  duration, date, shelf_id, server)
-    com.send(server, com.REQ_SET_PWM_EXPIRE, shelf_id, date)
+    com.send(server, com.Request.SET_PWM_EXPIRE, shelf_id, date)
     req, _ = com.recv(server)
-    if req != com.REQ_ACK:
+    if req != com.Request.ACK:
         logger.error("Unexpected request from server: expected %s, got %s",
-                     com.REQ_ACK, req)
+                     com.Request.ACK, req)
     else:
         print("ok")
 

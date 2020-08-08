@@ -1,20 +1,11 @@
 """Communicate request with a remote socket"""
 
+import enum
 import logging
 import pickle
 import socket
 
 import fand.util as util
-
-# Known requests
-REQ_ACK = 'ack'
-REQ_PING = 'ping'
-REQ_GET_PWM = 'get_pwm'
-REQ_SET_PWM = 'set_pwm'
-REQ_GET_RPM = 'get_rpm'
-REQ_SET_RPM = 'set_rpm'
-REQ_SET_PWM_OVERRIDE = 'set_pwm_override'
-REQ_SET_PWM_EXPIRE = 'set_pwm_expire'
 
 # Header = magic number + data size
 HEADER_MAGIC = b'99F9'
@@ -33,6 +24,18 @@ SOCKETS = []
 def _terminate():
     for sock in SOCKETS.copy():
         reset_connection(sock)
+
+
+class Request(enum.Enum):
+    """Standard request"""
+    ACK = 'ack'
+    PING = 'ping'
+    GET_PWM = 'get_pwm'
+    SET_PWM = 'set_pwm'
+    GET_RPM = 'get_rpm'
+    SET_RPM = 'set_rpm'
+    SET_PWM_OVERRIDE = 'set_pwm_override'
+    SET_PWM_EXPIRE = 'set_pwm_expire'
 
 
 def send(sock, request, *args):

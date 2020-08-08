@@ -181,7 +181,7 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
 
         logger.debug("Updating PWM")
         try:
-            com.send(server, com.REQ_GET_PWM, shelf_name)
+            com.send(server, com.Request.GET_PWM, shelf_name)
             req, args = com.recv(server)
             server_shelf_name, pwm_value = args
         except (TimeoutError, ConnectionError):
@@ -190,9 +190,9 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
         except ValueError:
             logger.error("Unexpected data received from %s: %s", server, args)
             server = reconnect(server)
-        if req != com.REQ_SET_PWM:
+        if req != com.Request.SET_PWM:
             logger.error("Unexpected request from %s: expected %s, got %s",
-                         server, com.REQ_SET_PWM, req)
+                         server, com.Request.SET_PWM, req)
             server = reconnect(server)
         elif server_shelf_name != shelf_name:
             logger.error("Unexpected shelf name %s received from %s",
@@ -213,14 +213,14 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
         util.sleep(1)
         gpio_rpm.update()
         try:
-            com.send(server, com.REQ_SET_RPM, shelf_name, gpio_rpm.rpm)
+            com.send(server, com.Request.SET_RPM, shelf_name, gpio_rpm.rpm)
             req, args = com.recv(server)
         except (TimeoutError, ConnectionError):
             logger.exception("Failed to get RPM value from %s", server)
             server = reconnect(server)
-        if req != com.REQ_ACK:
+        if req != com.Request.ACK:
             logger.error("Unexpected request from %s: expected %s, got %s",
-                         server, com.REQ_ACK, req)
+                         server, com.Request.ACK, req)
             server = reconnect(server)
 
         logger.info("Updated: PWM = %s, RPM = %s", pwm_value, gpio_rpm.rpm)
