@@ -216,9 +216,8 @@ def _handle_set_rpm(client_socket, shelf_id, speed):
     except KeyError as error:
         raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     except ValueError:
-        logger.exception("Wrong speed value %s received", speed)
-        com.reset_connection(client_socket, "Wrong speed value")
-        return
+        logger.error("Wrong speed value %s received", speed)
+        raise
     com.send(client_socket, com.Request.ACK)
 
 
@@ -231,9 +230,8 @@ def _handle_set_pwm_override(client_socket, shelf_id, speed):
     except KeyError as error:
         raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     except ValueError:
-        logger.exception("Wrong value %s received", speed)
-        com.reset_connection(client_socket, "Shelf not found")
-        return
+        logger.error("Wrong value %s received", speed)
+        raise
     com.send(client_socket, com.Request.ACK)
 
 
@@ -248,9 +246,8 @@ def _handle_set_pwm_expire(client_socket, shelf_id, date):
     except KeyError as error:
         raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     except ValueError:
-        logger.exception("Wrong value %s received", date)
-        com.reset_connection(client_socket, "Wrong date value")
-        return
+        logger.error("Wrong value %s received", date)
+        raise
     com.send(client_socket, com.Request.ACK)
 
 
@@ -307,6 +304,10 @@ def listen_client(client_socket):
             continue
         except ShelfNotFoundError as error:
             logger.exception("Shelf not found for %s", client_socket)
+            com.reset_connection(client_socket, error)
+            continue
+        except ValueError as error:
+            logger.exception("Unexpected value from %s", client_socket)
             com.reset_connection(client_socket, error)
             continue
 
