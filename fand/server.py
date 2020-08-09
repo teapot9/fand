@@ -177,6 +177,10 @@ class Shelf:
         logger.info("PWM speed for shelf %s is %s", self, self.__pwm)
 
 
+class ShelfNotFoundError(ValueError):
+    """No shelf with the given name exists"""
+
+
 def _handle_ping(client_socket):
     """Handle the ping request from a client"""
     logger.info("Received REQ_PING from %s", client_socket)
@@ -188,10 +192,8 @@ def _handle_get_pwm(client_socket, shelf_id):
     logger.info("Received REQ_GET_PWM from %s for %s", client_socket, shelf_id)
     try:
         pwm = __SHELVES__[shelf_id].pwm
-    except KeyError:
-        logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket, "Shelf not found")
-        return
+    except KeyError as error:
+        raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     com.send(client_socket, com.Request.SET_PWM, shelf_id, pwm)
 
 
@@ -200,10 +202,8 @@ def _handle_get_rpm(client_socket, shelf_id):
     logger.info("Received REQ_GET_RPN from %s for %s", client_socket, shelf_id)
     try:
         rpm = __SHELVES__[shelf_id].rpm
-    except KeyError:
-        logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket, "Shelf not found")
-        return
+    except KeyError as error:
+        raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     com.send(client_socket, com.Request.SET_RPM, shelf_id, rpm)
 
 
@@ -213,10 +213,8 @@ def _handle_set_rpm(client_socket, shelf_id, speed):
                 speed, client_socket, shelf_id)
     try:
         __SHELVES__[shelf_id].rpm = speed
-    except KeyError:
-        logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket, "Shelf not found")
-        return
+    except KeyError as error:
+        raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     except ValueError:
         logger.exception("Wrong speed value %s received", speed)
         com.reset_connection(client_socket, "Wrong speed value")
@@ -230,10 +228,8 @@ def _handle_set_pwm_override(client_socket, shelf_id, speed):
                 speed, client_socket, shelf_id)
     try:
         __SHELVES__[shelf_id].pwm = speed
-    except KeyError:
-        logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket, "Shelf not found")
-        return
+    except KeyError as error:
+        raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     except ValueError:
         logger.exception("Wrong value %s received", speed)
         com.reset_connection(client_socket, "Shelf not found")
@@ -249,10 +245,8 @@ def _handle_set_pwm_expire(client_socket, shelf_id, date):
                 shelf_id, date, client_socket)
     try:
         __SHELVES__[shelf_id].pwm_expire = date
-    except KeyError:
-        logger.exception("Shelf %s not found", shelf_id)
-        com.reset_connection(client_socket, "Shelf not found")
-        return
+    except KeyError as error:
+        raise ShelfNotFoundError(f"Shelf {shelf_id} not found") from error
     except ValueError:
         logger.exception("Wrong value %s received", date)
         com.reset_connection(client_socket, "Wrong date value")
@@ -310,6 +304,10 @@ def listen_client(client_socket):
         except ConnectionError:
             logger.exception("Connection error from %s", client_socket)
             com.reset_connection(client_socket)
+            continue
+        except ShelfNotFoundError as error:
+            logger.exception("Shelf not found for %s", client_socket)
+            com.reset_connection(client_socket, error)
             continue
 
 
