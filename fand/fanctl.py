@@ -234,4 +234,7 @@ def send(action, *args, address=socket.gethostname(), port=9999):
         except ValueError:
             logger.exception("Received value error in action %s", action)
             util.terminate("Invalid arguments")
+        except ConnectionResetError:
+            logger.error("Connection reset by server during %s", action)
+            util.terminate("Connection reset by server")
     util.terminate()
