@@ -120,7 +120,7 @@ def _action_get_shelf_rpm(server, shelf_id):
 def _action_set_pwm_override(server, shelf_id, value_str):
     """Override shelf PWM value to value_str"""
     logger.debug("Overriding PWM of %s to %s", shelf_id, value_str)
-    if value_str.lower() == 'none':
+    if str(value_str).lower() == 'none':
         value = None
     else:
         value = int(value_str)
@@ -144,6 +144,9 @@ def _action_set_pwm_expire_on(server, shelf_id, date_str):
             break
         except ValueError:
             pass
+        except AttributeError as error:
+            raise AttributeError(f"Expected string, got {type(date_str)}") \
+                from error
     else:
         raise ValueError(f"Could not convert {date_str} to a datetime object")
     logger.debug("Sending set PWM expire on %s for %s to %s",

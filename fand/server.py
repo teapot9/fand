@@ -313,6 +313,7 @@ def listen_client(client_socket):
             logger.exception("Unexpected value from %s", client_socket)
             com.reset_connection(client_socket, error)
             continue
+    logger.debug("Stopping client thread for %s: socket closed", client_socket)
 
 
 def find_config_file():
