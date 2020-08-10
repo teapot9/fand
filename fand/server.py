@@ -86,6 +86,9 @@ class Shelf:
     def __str__(self):
         return self.identifier
 
+    def __iter__(self):
+        return iter(self.__devices)
+
     @property
     def rpm(self):
         """Shelf fan speed RPM"""
@@ -147,7 +150,7 @@ class Shelf:
         # Update all drives
         for device in self.__devices.values():
             logger.debug("Updating device %s", device)
-            if not device.pysmart:
+            if device.pysmart is None:
                 device.pysmart = device.find()
                 continue
             device.pysmart.update()
