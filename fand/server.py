@@ -1,5 +1,6 @@
 """fand server"""
 
+import abc
 import argparse
 import concurrent.futures
 import configparser
@@ -76,26 +77,26 @@ class Device:
         NONE = 0
         HDD = 1
 
-    class _DeviceWrapper:
+    class _DeviceWrapper(abc.ABC):
         """Abstract class for device wrappers"""
+        @abc.abstractmethod
         def update(self):
             """Update the device informations"""
-            raise NotImplementedError()
 
         @property
+        @abc.abstractmethod
         def temperature(self):
             """Current device temperature"""
-            raise NotImplementedError()
 
         @property
+        @abc.abstractmethod
         def serial(self):
             """Current device serial"""
-            raise NotImplementedError()
 
         @property
+        @abc.abstractmethod
         def type(self):
             """Device type"""
-            raise NotImplementedError()
 
     class _HddWrapper(_DeviceWrapper):
         """Wrapper class for HDDs"""
