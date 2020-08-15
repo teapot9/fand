@@ -39,7 +39,7 @@ class Device:
         """Constructor"""
         self.serial = serial
         self.position = position
-        self.device = self.find()
+        self.__device = self.find()
         logger.info("New device %s created", self)
 
     def __str__(self):
@@ -57,14 +57,14 @@ class Device:
 
     def update(self):
         """Update device informations"""
-        self.device.update()
-        if self.device.serial != self.serial:
-            self.device = self.find()
+        self.__device.update()
+        if self.__device.serial != self.serial:
+            self.__device = self.find()
 
     @property
     def temperature(self):
         """Get current drive temperature"""
-        return self.device.temperature
+        return self.__device.temperature
 
     class DeviceType(enum.Enum):
         """Enumeration of device types, to identify Device objects"""
