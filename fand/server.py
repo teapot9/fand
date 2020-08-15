@@ -61,6 +61,20 @@ class HddWrapper(DeviceWrapper):
         return self.pysmart.serial
 
 
+class NoneDevice(DeviceWrapper):
+    """Wrapper for missing devices"""
+    def update(self):
+        pass
+
+    @property
+    def temperature(self):
+        return 0
+
+    @property
+    def serial(self):
+        return None
+
+
 class Device:
     """Class handling devices to get temperature from
     Attributes:
@@ -86,26 +100,17 @@ class Device:
                     logger.debug("Identified HDD %s", self.serial)
                     return HddWrapper(device)
         logger.error("Device not found: %s", self.serial)
-        return None
+        return NoneDevice()
 
     def update(self):
         """Update device informations"""
-        if self.device is None:
-            self.device = self.find()
-            if self.device is None:
-                return
-
         self.device.update()
-
         if self.device.serial != self.serial:
-            self.device = None
-            return
+            self.device = self.find()
 
     @property
     def temperature(self):
         """Get current drive temperature"""
-        if self.device is None:
-            return None
         return self.device.temperature
 
 
