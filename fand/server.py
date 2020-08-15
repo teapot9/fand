@@ -27,54 +27,6 @@ SLEEP_TIME = 60
 __SHELVES__ = {}
 
 
-class DeviceWrapper:
-    """Abstract class for device wrappers"""
-    def update(self):
-        """Update the device informations"""
-        raise NotImplementedError()
-
-    @property
-    def temperature(self):
-        """Current device temperature"""
-        raise NotImplementedError()
-
-    @property
-    def serial(self):
-        """Current device serial"""
-        raise NotImplementedError()
-
-
-class HddWrapper(DeviceWrapper):
-    """Wrapper class for HDDs"""
-    def __init__(self, device):
-        self.pysmart = device
-
-    def update(self):
-        self.pysmart.update()
-
-    @property
-    def temperature(self):
-        return self.pysmart.temperature
-
-    @property
-    def serial(self):
-        return self.pysmart.serial
-
-
-class NoneDevice(DeviceWrapper):
-    """Wrapper for missing devices"""
-    def update(self):
-        pass
-
-    @property
-    def temperature(self):
-        return 0
-
-    @property
-    def serial(self):
-        return None
-
-
 class Device:
     """Class handling devices to get temperature from
     Attributes:
@@ -98,9 +50,9 @@ class Device:
             if device.serial == self.serial:
                 if not device.is_ssd:
                     logger.debug("Identified HDD %s", self.serial)
-                    return HddWrapper(device)
+                    return Device.HddWrapper(device)
         logger.error("Device not found: %s", self.serial)
-        return NoneDevice()
+        return Device.NoneDevice()
 
     def update(self):
         """Update device informations"""
@@ -112,6 +64,51 @@ class Device:
     def temperature(self):
         """Get current drive temperature"""
         return self.device.temperature
+
+    class DeviceWrapper:
+        """Abstract class for device wrappers"""
+        def update(self):
+            """Update the device informations"""
+            raise NotImplementedError()
+
+        @property
+        def temperature(self):
+            """Current device temperature"""
+            raise NotImplementedError()
+
+        @property
+        def serial(self):
+            """Current device serial"""
+            raise NotImplementedError()
+
+    class HddWrapper(DeviceWrapper):
+        """Wrapper class for HDDs"""
+        def __init__(self, device):
+            self.pysmart = device
+
+        def update(self):
+            self.pysmart.update()
+
+        @property
+        def temperature(self):
+            return self.pysmart.temperature
+
+        @property
+        def serial(self):
+            return self.pysmart.serial
+
+    class NoneDevice(DeviceWrapper):
+        """Wrapper for missing devices"""
+        def update(self):
+            pass
+
+        @property
+        def temperature(self):
+            return 0
+
+        @property
+        def serial(self):
+            return None
 
 
 class Shelf:
@@ -202,7 +199,7 @@ class Shelf:
     def __iter_hdd(self):
         """Iterate over accessible HDD"""
         for device in self.__devices.values():
-            if isinstance(device.device, HddWrapper):
+            if isinstance(device.device, Device.HddWrapper):
                 yield device
 
     def update(self):
