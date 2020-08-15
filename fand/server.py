@@ -51,9 +51,9 @@ class Device:
             if device.serial == self.serial:
                 if not device.is_ssd:
                     logger.debug("Identified HDD %s", self.serial)
-                    return Device.HddWrapper(device)
+                    return Device._HddWrapper(device)
         logger.error("Device not found: %s", self.serial)
-        return Device.NoneDevice()
+        return Device._NoneDevice()
 
     def update(self):
         """Update device informations"""
@@ -66,12 +66,17 @@ class Device:
         """Get current drive temperature"""
         return self.__device.temperature
 
+    @property
+    def type(self):
+        """DeviceType"""
+        return self.__device.type
+
     class DeviceType(enum.Enum):
         """Enumeration of device types, to identify Device objects"""
         NONE = 0
         HDD = 1
 
-    class DeviceWrapper:
+    class _DeviceWrapper:
         """Abstract class for device wrappers"""
         def update(self):
             """Update the device informations"""
@@ -92,7 +97,7 @@ class Device:
             """Device type"""
             raise NotImplementedError()
 
-    class HddWrapper(DeviceWrapper):
+    class _HddWrapper(_DeviceWrapper):
         """Wrapper class for HDDs"""
         def __init__(self, device):
             self.pysmart = device
@@ -112,7 +117,7 @@ class Device:
         def type(self):
             return Device.DeviceType.HDD
 
-    class NoneDevice(DeviceWrapper):
+    class _NoneDevice(_DeviceWrapper):
         """Wrapper for missing devices"""
         def update(self):
             pass
