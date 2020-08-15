@@ -4,6 +4,7 @@ import argparse
 import concurrent.futures
 import configparser
 import datetime
+import enum
 import logging
 import os
 import signal
@@ -65,6 +66,11 @@ class Device:
         """Get current drive temperature"""
         return self.device.temperature
 
+    class DeviceType(enum.Enum):
+        """Enumeration of device types, to identify Device objects"""
+        NONE = 0
+        HDD = 1
+
     class DeviceWrapper:
         """Abstract class for device wrappers"""
         def update(self):
@@ -79,6 +85,11 @@ class Device:
         @property
         def serial(self):
             """Current device serial"""
+            raise NotImplementedError()
+
+        @property
+        def type(self):
+            """Device type"""
             raise NotImplementedError()
 
     class HddWrapper(DeviceWrapper):
@@ -97,6 +108,10 @@ class Device:
         def serial(self):
             return self.pysmart.serial
 
+        @property
+        def type(self):
+            return Device.DeviceType.HDD
+
     class NoneDevice(DeviceWrapper):
         """Wrapper for missing devices"""
         def update(self):
@@ -109,6 +124,10 @@ class Device:
         @property
         def serial(self):
             return None
+
+        @property
+        def type(self):
+            return Device.DeviceType.NONE
 
 
 class Shelf:
@@ -199,7 +218,7 @@ class Shelf:
     def __iter_hdd(self):
         """Iterate over accessible HDD"""
         for device in self.__devices.values():
-            if isinstance(device.device, Device.HddWrapper):
+            if device.type == Device.DeviceType.HDD:
                 yield device
 
     def update(self):
