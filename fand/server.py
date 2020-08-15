@@ -27,11 +27,46 @@ SLEEP_TIME = 60
 __SHELVES__ = {}
 
 
+class DeviceWrapper:
+    """Abstract class for device wrappers"""
+    def update(self):
+        """Update the device informations"""
+        raise NotImplementedError()
+
+    @property
+    def temperature(self):
+        """Current device temperature"""
+        raise NotImplementedError()
+
+    @property
+    def serial(self):
+        """Current device serial"""
+        raise NotImplementedError()
+
+
+class HddWrapper(DeviceWrapper):
+    """Wrapper class for HDDs"""
+    def __init__(self, device):
+        self.pysmart = device
+
+    def update(self):
+        self.pysmart.update()
+
+    @property
+    def temperature(self):
+        return self.pysmart.temperature
+
+    @property
+    def serial(self):
+        return self.pysmart.serial
+
+
 class Device:
     """Class handling devices to get temperature from
     Attributes:
     serial: serial number, string
     position: drive positionning information, string
+    device: DeviceWrapper
     """
     def __init__(self, serial, position):
         """Constructor"""
@@ -49,9 +84,29 @@ class Device:
             if device.serial == self.serial:
                 if not device.is_ssd:
                     logger.debug("Identified HDD %s", self.serial)
-                    return device
+                    return HddWrapper(device)
         logger.error("Device not found: %s", self.serial)
         return None
+
+    def update(self):
+        """Update device informations"""
+        if self.device is None:
+            self.device = self.find()
+            if self.device is None:
+                return
+
+        self.device.update()
+
+        if self.device.serial != self.serial:
+            self.device = None
+            return
+
+    @property
+    def temperature(self):
+        """Get current drive temperature"""
+        if self.device is None:
+            return None
+        return self.device.temperature
 
 
 class Shelf:
@@ -142,7 +197,7 @@ class Shelf:
     def __iter_hdd(self):
         """Iterate over accessible HDD"""
         for device in self.__devices.values():
-            if device.device and not device.device.is_ssd:
+            if isinstance(device.device, HddWrapper):
                 yield device
 
     def update(self):
@@ -151,19 +206,13 @@ class Shelf:
         # Update all drives
         for device in self.__devices.values():
             logger.debug("Updating device %s", device)
-            if device.device is None:
-                device.device = device.find()
-                continue
-            device.device.update()
-            # Make sure the pysmart device is still the correct one
-            if device.device.serial != device.serial:
-                device.device = None
+            device.update()
 
         # List of PWM values: each type of device will have a PWM value
         pwm_list = []
 
         # Get HDD temperatures
-        hdd_temp_list = [device.device.temperature
+        hdd_temp_list = [device.temperature
                          for device in self.__iter_hdd()]
         effective_hdd_temp = max(hdd_temp_list) if hdd_temp_list else 255
         logger.info("Effective HDD temperature for shelf %s is %s",
