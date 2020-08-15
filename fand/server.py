@@ -28,17 +28,16 @@ __SHELVES__ = {}
 
 
 class Device:
-    """Wrapper class around pySMART Device class
+    """Class handling devices to get temperature from
     Attributes:
     serial: serial number, string
-    pysmart: pysmart Device
     position: drive positionning information, string
     """
     def __init__(self, serial, position):
         """Constructor"""
         self.serial = serial
         self.position = position
-        self.pysmart = self.find()
+        self.device = self.find()
         logger.info("New device %s created", self)
 
     def __str__(self):
@@ -48,8 +47,10 @@ class Device:
         """Search device on the system"""
         for device in pysmart.DeviceList().devices:
             if device.serial == self.serial:
-                return device
-        logger.error("Device %s not found", self)
+                if not device.is_ssd:
+                    logger.debug("Identified HDD %s", self.serial)
+                    return device
+        logger.error("Device not found: %s", self.serial)
         return None
 
 
@@ -141,7 +142,7 @@ class Shelf:
     def __iter_hdd(self):
         """Iterate over accessible HDD"""
         for device in self.__devices.values():
-            if device.pysmart and not device.pysmart.is_ssd:
+            if device.device and not device.device.is_ssd:
                 yield device
 
     def update(self):
@@ -150,19 +151,19 @@ class Shelf:
         # Update all drives
         for device in self.__devices.values():
             logger.debug("Updating device %s", device)
-            if device.pysmart is None:
-                device.pysmart = device.find()
+            if device.device is None:
+                device.device = device.find()
                 continue
-            device.pysmart.update()
+            device.device.update()
             # Make sure the pysmart device is still the correct one
-            if device.pysmart.serial != device.serial:
-                device.pysmart = None
+            if device.device.serial != device.serial:
+                device.device = None
 
         # List of PWM values: each type of device will have a PWM value
         pwm_list = []
 
         # Get HDD temperatures
-        hdd_temp_list = [device.pysmart.temperature
+        hdd_temp_list = [device.device.temperature
                          for device in self.__iter_hdd()]
         effective_hdd_temp = max(hdd_temp_list) if hdd_temp_list else 255
         logger.info("Effective HDD temperature for shelf %s is %s",
