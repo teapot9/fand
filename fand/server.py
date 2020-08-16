@@ -144,10 +144,10 @@ class Shelf:
     rpm: rpm of the shelf, float
     __devices: dictionnary, key = device serial (string),
         value = Device instance
-    __hdd_temps: dictionnary, key = temperature (int),
-        value = speed (float, percentage), must have a 0 key
+    __temperatures: dictionnary of dictionnaries
+        {DeviceType: {temperature in deg C: pwm speed in percent}}
     """
-    def __init__(self, identifier, devices, hdd_temps):
+    def __init__(self, identifier, devices, hdd_temps=None):
         """Constructor
         idenifier: shelf id
         devices: list of Device instances
@@ -157,10 +157,15 @@ class Shelf:
         logger.debug("Creating new shelf %s", identifier)
         self.identifier = identifier
         self.__devices = {device.serial: device for device in devices}
-        self.__hdd_temps = hdd_temps
-        if not hdd_temps.get(0):
-            logger.critical("hdd_temps has no 0 deg C key: %s", hdd_temps)
-            raise ValueError("hdd_temps has no 0 deg C key")
+        self.__temperatures = {
+            Device.DeviceType.NONE: {0: 0},
+            Device.DeviceType.HDD: {0: 0} if hdd_temps is None else hdd_temps,
+        }
+        for dev_type, dev_temps in self.__temperatures.items():
+            if dev_temps.get(0) is None:
+                logger.critical("%s has no 0 temperature configured: %s",
+                                dev_type, dev_temps)
+                raise ValueError(f"{dev_type} has no 0 temperature")
         self.__pwm = 100
         self.rpm = 0
         self.__pwm_override = None
@@ -170,7 +175,7 @@ class Shelf:
         return self.identifier
 
     def __iter__(self):
-        return iter(self.__devices)
+        return iter(self.__devices.values())
 
     @property
     def rpm(self):
@@ -221,12 +226,6 @@ class Shelf:
             raise ValueError(f"Expiration {date} is before now {now}")
         self.__pwm_expire = date
 
-    def __iter_hdd(self):
-        """Iterate over accessible HDD"""
-        for device in self.__devices.values():
-            if device.type == Device.DeviceType.HDD:
-                yield device
-
     def update(self):
         """Update shelf data"""
         logger.info("Updating shelf %s", self)
@@ -235,22 +234,26 @@ class Shelf:
             logger.debug("Updating device %s", device)
             device.update()
 
-        # List of PWM values: each type of device will have a PWM value
-        pwm_list = []
+        # temp_lists dict: `DeviceType: list of temperatures`
+        temp_lists = {dev_type: [] for dev_type in Device.DeviceType}
+        for device in self:
+            temp_lists[device.type].append(device.temperature)
 
-        # Get HDD temperatures
-        hdd_temp_list = [device.temperature
-                         for device in self.__iter_hdd()]
-        effective_hdd_temp = max(hdd_temp_list) if hdd_temp_list else 255
-        logger.info("Effective HDD temperature for shelf %s is %s",
-                    self, effective_hdd_temp)
-        # Get PWM from HDD temperatures
-        for temp in sorted(self.__hdd_temps.keys(), reverse=True):
-            if effective_hdd_temp >= temp:
-                logger.debug("HDD PWM for shelf %s is %s",
-                             self, self.__hdd_temps[temp])
-                pwm_list.append(self.__hdd_temps[temp])
-                break
+        # effective_temps dict: `DeviceType: effective temperature`
+        effective_temps = {dev_type: 0 for dev_type in Device.DeviceType}
+        for dev_type, temp_list in temp_lists.items():
+            if temp_list:
+                effective_temps[dev_type] = max(temp_list)
+        logger.info("Effective temperatures are: %s", effective_temps)
+
+        # pwm_list: list of effective PWM values
+        pwm_list = []
+        for dev_type, effective_temp in effective_temps.items():
+            pwm_list.append(max(
+                speed for temp, speed in self.__temperatures[dev_type].items()
+                if effective_temp >= temp
+            ))
+        logger.debug("Effective PWM values are: %s", pwm_list)
 
         # Get final PWM speed
         self.__pwm = max(pwm_list)
