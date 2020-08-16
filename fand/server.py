@@ -53,11 +53,14 @@ class Device:
                 if not device.is_ssd:
                     logger.debug("Identified HDD %s", self.serial)
                     return Device._HddWrapper(device)
+                logger.debug("Identified SSD %s", self.serial)
+                return Device._SsdWrapper(device)
         logger.error("Device not found: %s", self.serial)
         return Device._NoneDevice()
 
     def update(self):
         """Update device informations"""
+        logger.debug("Updating device %s", self)
         self.__device.update()
         if self.__device.serial != self.serial:
             self.__device = self.find()
@@ -76,6 +79,7 @@ class Device:
         """Enumeration of device types, to identify Device objects"""
         NONE = 0
         HDD = 1
+        SSD = 2
 
     class _DeviceWrapper(abc.ABC):
         """Abstract class for device wrappers"""
@@ -118,6 +122,26 @@ class Device:
         def type(self):
             return Device.DeviceType.HDD
 
+    class _SsdWrapper(_DeviceWrapper):
+        """wrapper class for SSDs"""
+        def __init__(self, device):
+            self.pysmart = device
+
+        def update(self):
+            self.pysmart.update()
+
+        @property
+        def temperature(self):
+            return self.pysmart.temperature
+
+        @property
+        def serial(self):
+            return self.pysmart.serial
+
+        @property
+        def type(self):
+            return Device.DeviceType.SSD
+
     class _NoneDevice(_DeviceWrapper):
         """Wrapper for missing devices"""
         def update(self):
@@ -147,12 +171,13 @@ class Shelf:
     __temperatures: dictionnary of dictionnaries
         {DeviceType: {temperature in deg C: pwm speed in percent}}
     """
-    def __init__(self, identifier, devices, hdd_temps=None):
+    def __init__(self, identifier, devices, hdd_temps=None, ssd_temps=None):
         """Constructor
         idenifier: shelf id
         devices: list of Device instances
         hdd_temps: dictionnary in the format `temp in deg C: speed in percent`,
             must have a 0 temperature key
+        ssd_temps: dictionnary in the same format as hdd_temps
         """
         logger.debug("Creating new shelf %s", identifier)
         self.identifier = identifier
@@ -160,6 +185,7 @@ class Shelf:
         self.__temperatures = {
             Device.DeviceType.NONE: {0: 0},
             Device.DeviceType.HDD: {0: 0} if hdd_temps is None else hdd_temps,
+            Device.DeviceType.SSD: {0: 0} if ssd_temps is None else ssd_temps,
         }
         for dev_type, dev_temps in self.__temperatures.items():
             if dev_temps.get(0) is None:
@@ -231,13 +257,14 @@ class Shelf:
         logger.info("Updating shelf %s", self)
         # Update all drives
         for device in self.__devices.values():
-            logger.debug("Updating device %s", device)
             device.update()
 
         # temp_lists dict: `DeviceType: list of temperatures`
         temp_lists = {dev_type: [] for dev_type in Device.DeviceType}
         for device in self:
-            temp_lists[device.type].append(device.temperature)
+            if device.type != Device.DeviceType.NONE:
+                temp_lists[device.type].append(device.temperature)
+        logger.debug("Temperatures are: %s", temp_lists)
 
         # effective_temps dict: `DeviceType: effective temperature`
         effective_temps = {dev_type: 0 for dev_type in Device.DeviceType}
@@ -412,6 +439,14 @@ def find_config_file():
     return None
 
 
+def read_config_temps(config_string):
+    """Parse a configuration string for a temperature dictionnary"""
+    return {
+        float(temp.split(':')[0].strip()): float(temp.split(':')[1].strip())
+        for temp in config_string.split(',')
+    }
+
+
 def read_config(config):
     """Read configuration from a ConfigParser object"""
     logger.debug("Reading configuration %s", config)
@@ -422,11 +457,10 @@ def read_config(config):
         for device_string in config[shelf_id]['devices'].strip().split('\n'):
             serial, position, *_ = device_string.split(';')
             devices.append(Device(serial.strip(), position.strip()))
-        hdd_temps = {
-            int(temp.split(':')[0].strip()): int(temp.split(':')[1].strip())
-            for temp in config[shelf_id]['hdd_temps'].split(',')
-        }
-        __SHELVES__[shelf_id] = Shelf(shelf_id, devices, hdd_temps)
+        hdd_temps = read_config_temps(config[shelf_id]['hdd_temps'])
+        ssd_temps = read_config_temps(config[shelf_id]['ssd_temps'])
+        __SHELVES__[shelf_id] = Shelf(shelf_id, devices, hdd_temps=hdd_temps,
+                                      ssd_temps=ssd_temps)
 
 
 def shelf_thread(shelf):

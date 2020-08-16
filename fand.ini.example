@@ -14,6 +14,10 @@ shelves = shelf1, shelf2
 #               if the drive is < 37 deg C, corresponding speed is 25%
 hdd_temps = 0: 25, 37: 30, 38: 40, 39: 50, 40: 75, 41: 100
 
+# Default ssd_temps configuration
+# Same format as hdd_temps, but the values are for SSD rather than HDD
+ssd_temps = 0: 25, 60: 40, 62.5: 50, 65: 70, 67.5: 90, 70: 100
+
 # Configuration for shelf shelf1
 [shelf1]
 
