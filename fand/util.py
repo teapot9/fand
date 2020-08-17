@@ -77,6 +77,8 @@ def parse_args(parser):
                         help="Set verbosity level")
     parser.add_argument('--quiet', '-q', action='store_true',
                         help="Set minimal output")
+    parser.add_argument('--logfile', '-l', default=None,
+                        help="Send output logs to logfile")
     args = parser.parse_args()
     if args.quiet:
         level = logging.CRITICAL
@@ -90,4 +92,9 @@ def parse_args(parser):
         level = logging.DEBUG
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
+    if args.logfile is not None:
+        handler = logging.FileHandler(args.logfile, 'a', encoding='utf-8')
+        formatter = logging.Formatter('%(levelname)s:%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        root_logger.addHandler(handler)
     return args
