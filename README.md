@@ -13,7 +13,7 @@ This program also wants to be cross-platform.
 It should work with Linux and FreeBSD, as they are the platform used for
 testing.
 While they have not been tested, it should also works on
-\*BSD, Mac OS and Windows.
+\*BSD, Mac OS and Windows, but not all functionnalities may be available.
 
 This program contain multiples modules:
  * server: daemon monitoring drives
@@ -112,7 +112,8 @@ Python support:
    [upstream](https://www.python.org/downloads/).
 
 OS support:
- * server: same as pySMART, officially supporting Linux, Windows and FreeBSD
+ * server: same as pySMART and psutil: pySMART officially supports Linux,
+   Windows and FreeBSD; psutil officially supports Linux and FreeBSD.
  * fanctl: should support Linux, \*BSD, Windows and Mac OS
  * clientrpi: same as gpiozero, officially supporting Linux, Windows and Mac OS
 
@@ -121,6 +122,9 @@ Python dependencies for modules:
    * [pySMART](https://pypi.org/project/pySMART/)
      ([upstream](https://github.com/freenas/py-SMART)):
      access drive SMART informations
+   * [psutil](https://pypi.org/project/psutil/)
+     ([upstream](https://github.com/giampaolo/psutil)):
+     access CPU informations
  * clientrpi:
    * [gpiozero](https://pypi.org/project/gpiozero/)
      ([upstream](https://github.com/gpiozero/gpiozero)):

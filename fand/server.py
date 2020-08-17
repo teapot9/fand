@@ -11,6 +11,7 @@ import os
 import signal
 import socket
 
+import psutil
 import pySMART as pysmart
 
 import fand.util as util
@@ -48,6 +49,12 @@ class Device:
 
     def find(self):
         """Search device on the system"""
+        if self.serial == 'cpu':
+            if psutil.sensors_temperatures().get('coretemp') is not None:
+                logger.debug("Identified host CPU")
+                return Device._CpuWrapper()
+            logger.debug("Cannot access CPU informations")
+            return Device._NoneDevice()
         for device in pysmart.DeviceList().devices:
             if device.serial == self.serial:
                 if not device.is_ssd:
@@ -80,6 +87,7 @@ class Device:
         NONE = 0
         HDD = 1
         SSD = 2
+        CPU = 3
 
     class _DeviceWrapper(abc.ABC):
         """Abstract class for device wrappers"""
@@ -142,6 +150,24 @@ class Device:
         def type(self):
             return Device.DeviceType.SSD
 
+    class _CpuWrapper(_DeviceWrapper):
+        """Wrapper class for host CPU"""
+        def update(self):
+            pass
+
+        @property
+        def temperature(self):
+            return max(temp.current
+                       for temp in psutil.sensors_temperatures()['coretemp'])
+
+        @property
+        def serial(self):
+            return 'cpu'
+
+        @property
+        def type(self):
+            return Device.DeviceType.CPU
+
     class _NoneDevice(_DeviceWrapper):
         """Wrapper for missing devices"""
         def update(self):
@@ -171,13 +197,15 @@ class Shelf:
     __temperatures: dictionnary of dictionnaries
         {DeviceType: {temperature in deg C: pwm speed in percent}}
     """
-    def __init__(self, identifier, devices, hdd_temps=None, ssd_temps=None):
+    def __init__(self, identifier, devices, hdd_temps=None, ssd_temps=None,
+                 cpu_temps=None):
         """Constructor
         idenifier: shelf id
         devices: list of Device instances
         hdd_temps: dictionnary in the format `temp in deg C: speed in percent`,
             must have a 0 temperature key
         ssd_temps: dictionnary in the same format as hdd_temps
+        cpu_temps: dictionnary in the same format as hdd_temps
         """
         logger.debug("Creating new shelf %s", identifier)
         self.identifier = identifier
@@ -186,6 +214,7 @@ class Shelf:
             Device.DeviceType.NONE: {0: 0},
             Device.DeviceType.HDD: {0: 0} if hdd_temps is None else hdd_temps,
             Device.DeviceType.SSD: {0: 0} if ssd_temps is None else ssd_temps,
+            Device.DeviceType.CPU: {0: 0} if cpu_temps is None else cpu_temps,
         }
         for dev_type, dev_temps in self.__temperatures.items():
             if dev_temps.get(0) is None:
@@ -459,8 +488,9 @@ def read_config(config):
             devices.append(Device(serial.strip(), position.strip()))
         hdd_temps = read_config_temps(config[shelf_id]['hdd_temps'])
         ssd_temps = read_config_temps(config[shelf_id]['ssd_temps'])
+        cpu_temps = read_config_temps(config[shelf_id]['cpu_temps'])
         __SHELVES__[shelf_id] = Shelf(shelf_id, devices, hdd_temps=hdd_temps,
-                                      ssd_temps=ssd_temps)
+                                      ssd_temps=ssd_temps, cpu_temps=cpu_temps)
 
 
 def shelf_thread(shelf):

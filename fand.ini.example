@@ -18,6 +18,10 @@ hdd_temps = 0: 25, 37: 30, 38: 40, 39: 50, 40: 75, 41: 100
 # Same format as hdd_temps, but the values are for SSD rather than HDD
 ssd_temps = 0: 25, 60: 40, 62.5: 50, 65: 70, 67.5: 90, 70: 100
 
+# Default cpu_temps configuration
+# Same format as hdd_temps, but the values are for the CPU rather than HDD
+cpu_temps = 0: 25, 75: 40, 80: 60, 85: 80, 90: 100
+
 # Configuration for shelf shelf1
 [shelf1]
 
