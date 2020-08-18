@@ -403,7 +403,7 @@ REQUEST_HANDLERS = {
 def listen_client(client_socket):
     """Listen for client requests until the connection is closed"""
     logger.info("Listening to %s", client_socket)
-    while client_socket in com.SOCKETS:
+    while com.is_socket_open(client_socket):
         try:
             req, args = com.recv(client_socket)
         except TimeoutError:
@@ -543,12 +543,12 @@ def start(config_file=find_config_file(), address=socket.gethostname(),
         except OSError:
             logger.exception("Failed to bind to %s:%s", address, port)
             util.terminate("Cannot bind to requested interface and port")
-        com.SOCKETS.append(listen_socket)
-        while listen_socket in com.SOCKETS:
+        com.add_socket(listen_socket)
+        while com.is_socket_open(listen_socket):
             try:
                 client_socket, client_address = listen_socket.accept()
                 logger.info("New connection from %s", client_address)
-                com.SOCKETS.append(client_socket)
+                com.add_socket(client_socket)
                 futures.append(executor.submit(listen_client, client_socket))
             except OSError:
                 logger.exception("Error while listening for clients")

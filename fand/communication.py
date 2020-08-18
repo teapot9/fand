@@ -17,12 +17,12 @@ HEADER_SIZE = HEADER_MAGIC_SIZE + HEADER_DATA_SIZE
 logger = logging.getLogger(__name__)
 
 # List of open sockets, closed when program exits
-SOCKETS = []
+__SOCKETS__ = set()
 
 
 @util.when_terminate
 def _terminate():
-    for sock in SOCKETS.copy():
+    for sock in __SOCKETS__.copy():
         reset_connection(sock)
 
 
@@ -37,6 +37,20 @@ class Request(enum.Enum):
     SET_RPM = 'set_rpm'
     SET_PWM_OVERRIDE = 'set_pwm_override'
     SET_PWM_EXPIRE = 'set_pwm_expire'
+
+
+def add_socket(sock):
+    """Add sock to the set of managed sockets
+    It can be removed with reset_connection()
+    and will automatically be when util.terminate() is run
+    """
+    logger.debug("Adding socket %s", sock)
+    __SOCKETS__.add(sock)
+
+
+def is_socket_open(sock):
+    """Return True if sock is currently managed by this module"""
+    return sock in __SOCKETS__
 
 
 def send(sock, request, *args):
@@ -112,7 +126,7 @@ def connect(address, port):
         raise TimeoutError() from error
     except OSError as error:
         raise ConnectionError() from error
-    SOCKETS.append(server)
+    add_socket(server)
     logger.info("Connected to %s:%s, created %s", address, port, server)
     return server
 
@@ -123,7 +137,7 @@ def reset_connection(client_socket, error_msg=None, notice=True):
     notice: send a notice about the reset to the remote socket
     """
     logger.info("Closing connection to %s", client_socket)
-    if client_socket not in SOCKETS:
+    if not is_socket_open(client_socket):
         return
     try:
         if notice:
@@ -136,4 +150,4 @@ def reset_connection(client_socket, error_msg=None, notice=True):
         client_socket.close()
     except OSError as error:
         logger.warning("Could not close %s because %s", client_socket, error)
-    SOCKETS.remove(client_socket)
+    __SOCKETS__.remove(client_socket)
