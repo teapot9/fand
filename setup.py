@@ -22,10 +22,9 @@ setuptools.setup(
     extras_require={
         'dev': ['flake8'],
         'server': ['pySMART', 'psutil'],
-        'clientrpi': ['gpiozero'],
-        'clientrpi-rpi-gpio': ['RPi.GPIO'],
-        'clientrpi-pigpio': ['pigpio'],
-        'clientrpi-rpio': ['RPIO'],
+        'clientrpi-rpi-gpio': ['gpiozero', 'RPi.GPIO'],
+        'clientrpi-pigpio': ['gpiozero', 'pigpio'],
+        'clientrpi-rpio': ['gpiozero', 'RPIO'],
     },
 
     packages=['fand'],

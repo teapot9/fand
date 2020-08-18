@@ -164,14 +164,14 @@ Install fand with:
 
 Install fand with one of the following commands:
  * Install with RPi.GPIO:
-   ```pip install fand[clientrpi,clientrpi-rpi-gpio]```
+   ```pip install fand[clientrpi-rpi-gpio]```
  * Install with pigpio:
-   ```pip install fand[clientrpi,clientrpi-pigpio]```
+   ```pip install fand[clientrpi-pigpio]```
  * Install with RPIO:
-   ```pip install fand[clientrpi,clientrpi-rpio]```
+   ```pip install fand[clientrpi-rpio]```
 
 ### Custom installation
 
 You can cumulate the extra dependencies if you want multiple modules.
-```pip install fand[server,clientrpi]```
+```pip install fand[server,clientrpi-pigpio]```
 
