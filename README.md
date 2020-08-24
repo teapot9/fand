@@ -50,7 +50,8 @@ The `[DEFAULT]` section contains the default configuration for all shelves.
 It must contain a `shelves` key listing the shelves names.
 Each shelf must have a section with its name.
 
-See the `fand.ini.example` to get a description of the configuration.
+See [fand.ini.example](config/fand.ini.example)
+to get a description of the configuration.
 
 ### Usage
 
