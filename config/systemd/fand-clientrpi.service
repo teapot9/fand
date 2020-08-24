@@ -1,0 +1,16 @@
+[Unit]
+Description=Simple daemon to control fan speed (client-rpi)
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=30
+ExecStart=/usr/bin/env fand-clientrpi
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+Alias=fand-clientrpi
+WantedBy=multi-user.target

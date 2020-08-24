@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+name="fand-clientrpi"
+command="/usr/bin/env ${name}"
+command_args="--logfile /var/log/${name}.log ${FAND_OPTS}"
+supervisor="supervise-daemon"
+description="Simple daemon to control fan speed (${name})"
+
+depend() {
+	after net
+}
