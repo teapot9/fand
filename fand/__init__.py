@@ -13,3 +13,17 @@ logging.basicConfig(
     format='%(levelname)s:%(name)s: %(message)s',
     level=logging.NOTSET,
 )
+
+# Workaround pySMART bug with Python 3.8 logging API
+# Keep until pySMART's next release
+try:
+    import pySMART
+
+    class _WrapperPysmartLogger(pySMART.utils.TraceLogger):
+        def findCaller(self, stack_info=False, stacklevel=1):
+            return super().findCaller(stack_info)
+
+    if logging.handlers.logging.getLoggerClass() == pySMART.utils.TraceLogger:
+        logging.setLoggerClass(_WrapperPysmartLogger)
+except ImportError:
+    pass
