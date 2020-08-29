@@ -170,14 +170,14 @@ def _action_set_pwm_expire_in(server, shelf_id, duration_str):
     else:
         raise ValueError(f"Cannot convert {duration_str} to timedelta object")
     match_dict = {k: v for k, v in match.groupdict().items() if v is not None}
-    logger.debug("Converted %s to %s", duration_str, match_dict)
     duration = datetime.timedelta(
-        days=int(match_dict.get('days', 0)),
+        days=int(match_dict.get('day', 0)),
         hours=int(match_dict.get('h', 0)),
         minutes=int(match_dict.get('min', 0)),
         seconds=int(match_dict.get('sec', 0)),
         milliseconds=int(match_dict.get('ms', 0)),
     )
+    logger.debug("Converted %s to %s = %s", duration_str, match_dict, duration)
     date = datetime.datetime.now(datetime.timezone.utc) + duration
     logger.debug("Sending set PWM expire in %s (%s) for %s to %s",
                  duration, date, shelf_id, server)
