@@ -6,6 +6,7 @@ import logging
 import re
 import signal
 import socket
+import sys
 
 import fand.util as util
 import fand.communication as com
@@ -138,6 +139,10 @@ def _action_set_pwm_override(server, shelf_id, value_str):
 def _action_set_pwm_expire_on(server, shelf_id, date_str):
     """Set shelf PWM override expiration to date_str"""
     logger.debug("Setting PWM override on %s for %s", date_str, shelf_id)
+    if sys.version_info < (3, 7) and re.search(r'[+-]\d\d:\d\d$', date_str):
+        # Python < 3.7 does not supports timezones 'HH:MM' (only 'HHMM')
+        match = re.findall(r'[+-]\d\d:\d\d$', date_str)[0]
+        date_str = date_str.replace(match, match.replace(':', ''))
     for test_str in DATETIME_DATE_FORMATS:
         try:
             date = datetime.datetime.strptime(date_str.strip(), test_str)
