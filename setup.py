@@ -20,7 +20,7 @@ setuptools.setup(
     python_requires='>=3, <4',
     install_requires=[],
     extras_require={
-        'dev': ['flake8'],
+        'test': ['flake8', 'pytest', 'tox'],
         'server': ['pySMART', 'psutil'],
         'clientrpi-rpi-gpio': ['gpiozero', 'RPi.GPIO'],
         'clientrpi-pigpio': ['gpiozero', 'pigpio'],
