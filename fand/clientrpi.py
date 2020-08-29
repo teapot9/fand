@@ -20,18 +20,18 @@ logger = logging.getLogger(__name__)
 SLEEP_TIME = 60
 
 # Global variables
-# List of active GPIO devices, closed when program exits
-GPIO_DEVICES = []
+# Set of active GPIO devices, closed when program exits
+__GPIO_DEVICES__ = set()
 
 
 @util.when_terminate
 def _terminate():
-    for device in GPIO_DEVICES.copy():
+    for device in __GPIO_DEVICES__.copy():
         try:
             device.close()
         except GpioError:
             logger.exception("Failed to close GPIO %s", device)
-        GPIO_DEVICES.remove(device)
+        __GPIO_DEVICES__.remove(device)
 
 
 class GpioRpm:
@@ -56,7 +56,7 @@ class GpioRpm:
             logger.warning("Ignoring GPIO warning %s", warning)
         self.__count, self.__start_time = 0, time.time()
         self.rpm = 0
-        GPIO_DEVICES.append(self)
+        __GPIO_DEVICES__.add(self)
         logger.info("Created GPIO RPM device on pin %s", pin)
 
     def __str__(self):
@@ -100,7 +100,7 @@ class GpioPwm:
             raise GpioError from error
         except gpiozero.GPIOZeroWarning as warning:
             logger.warning("Ignoring GPIO warning %s", warning)
-        GPIO_DEVICES.append(self)
+        __GPIO_DEVICES__.add(self)
         logger.info("Created GPIO PWM device on pin %s", pin)
 
     def __str__(self):
