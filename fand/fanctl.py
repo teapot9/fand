@@ -217,7 +217,10 @@ def main():
     parser.add_argument('args', nargs='*', help="Action arguments")
     args = util.parse_args(parser)
     logger.info("Started from main entry point with parameters %s", args)
-    send(args.action, *args.args, address=args.address, port=args.port)
+    try:
+        send(args.action, *args.args, address=args.address, port=args.port)
+    finally:
+        util.sys_exit()
 
 
 def send(action, *args, address=socket.gethostname(), port=9999):
@@ -227,22 +230,25 @@ def send(action, *args, address=socket.gethostname(), port=9999):
     signal.signal(signal.SIGTERM, util.default_signal_handler)
     try:
         server = com.connect(address, port)
-    except (TimeoutError, ConnectionError):
+    except (TimeoutError, ConnectionError) as error:
         logger.exception("Failed to connect to %s:%s", address, port)
         util.terminate("Cannot connect to server")
+        raise Exception("Cannot connect to server") from error
     handler = ACTION_DICT.get(action)
     if not handler:
         logger.error("Invalid action %s", action)
     else:
         try:
             handler(server, *args)
-        except TypeError:
+        except TypeError as error:
             logger.exception("Invalid call to acion %s", action)
             util.terminate("Invalid action")
-        except ValueError:
+            raise Exception("Invalid action") from error
+        except ValueError as error:
             logger.exception("Received value error in action %s", action)
             util.terminate("Invalid arguments")
-        except ConnectionResetError:
+            raise Exception("Invalid arguments") from error
+        except ConnectionResetError as error:
             logger.error("Connection reset by server during %s", action)
             util.terminate("Connection reset by server")
-    util.terminate()
+            raise Exception("Connection reset by server") from error

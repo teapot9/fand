@@ -45,6 +45,8 @@ def add_socket(sock):
     and will automatically be when util.terminate() is run
     """
     logger.debug("Adding socket %s", sock)
+    if util.terminating():
+        raise Exception("Cannot create sockets while terminating")
     __SOCKETS__.add(sock)
 
 

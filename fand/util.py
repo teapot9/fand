@@ -15,24 +15,38 @@ logger = logging.getLogger(__name__)
 # Global variables
 # Set by terminate(), get by terminating()
 __TERMINATE__ = False
+# Store the terminate error
+__TERMINATE_ERROR__ = None
 # List of functions to call when the program is terminating
 __WHEN_TERMINATE__ = []
 
 
-def terminate(error=0):
-    """Function terminating the program, does not return
+def terminate(error=None):
+    """Function terminating the program
+    Sets the terminate flag (see terminating()), and does some cleanup
+    (see when_terminate())
     error: error message to print (defaults to nothing)
     """
-    global __TERMINATE__
-    if error != 0:
+    global __TERMINATE__, __TERMINATE_ERROR__
+    if error is not None:
         logger.critical(error)
     if __TERMINATE__:
-        sys.exit(error)
+        return
     logger.info("Terminating...")
     __TERMINATE__ = True
+    __TERMINATE_ERROR__ = error
     for function, args in __WHEN_TERMINATE__:
         function(*args)
-    sys.exit(error)
+
+
+def sys_exit():
+    """Exit the program with the error from terminate()"""
+    if not __TERMINATE__:
+        terminate()
+    if __TERMINATE_ERROR__ is None:
+        sys.exit(0)
+    else:
+        sys.exit(__TERMINATE_ERROR__)
 
 
 def terminating():

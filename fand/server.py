@@ -511,7 +511,10 @@ def main():
                         help="Config file to parse")
     args = util.parse_args(parser)
     logger.info("Started from main entry point with parameters %s", args)
-    start(config_file=args.config, address=args.address, port=args.port)
+    try:
+        start(config_file=args.config, address=args.address, port=args.port)
+    finally:
+        util.sys_exit()
 
 
 def start(config_file=find_config_file(), address=socket.gethostname(),
@@ -522,6 +525,7 @@ def start(config_file=find_config_file(), address=socket.gethostname(),
     signal.signal(signal.SIGTERM, util.default_signal_handler)
     if config_file is None:
         util.terminate('No configuration file found')
+        raise ValueError("No configuration file found")
     config = configparser.ConfigParser()
     config.read(config_file)
     read_config(config)
@@ -531,8 +535,7 @@ def start(config_file=find_config_file(), address=socket.gethostname(),
             """Callback when shelf_thread future is done"""
             error = future.exception()
             if error is not None:
-                logger.exception("Exception in shelf thread")
-                util.terminate(Exception(f"Shelf thread raised {error}"))
+                util.terminate(f"Exception {error} in shelf thread")
 
         logger.info("Starting shelves threads")
         shelves = []
@@ -547,9 +550,11 @@ def start(config_file=find_config_file(), address=socket.gethostname(),
         try:
             listen_socket.bind((address, port))
             listen_socket.listen()
-        except OSError:
+        except OSError as error:
             logger.exception("Failed to bind to %s:%s", address, port)
             util.terminate("Cannot bind to requested interface and port")
+            raise Exception("Cannot bind to requested interface and port") \
+                from error
         com.add_socket(listen_socket)
         while com.is_socket_open(listen_socket):
             try:
@@ -557,7 +562,8 @@ def start(config_file=find_config_file(), address=socket.gethostname(),
                 logger.info("New connection from %s", client_address)
                 com.add_socket(client_socket)
                 clients.append(executor.submit(listen_client, client_socket))
-            except OSError:
-                logger.exception("Error while listening for clients")
+            except OSError as error:
                 if not util.terminating():
                     util.terminate("Error while listening for clients")
+                    raise Exception("Error while listening for clients") \
+                        from error

@@ -34,6 +34,13 @@ def _terminate():
         __GPIO_DEVICES__.remove(device)
 
 
+def add_gpio_device(device):
+    """Add a GPIO device to the set of managed GPIO devices"""
+    if util.terminating():
+        raise Exception("Cannot add new GPIO device while terminating")
+    __GPIO_DEVICES__.add(device)
+
+
 class GpioRpm:
     """Class to handle RPM tachometer from a fan
     Attributes:
@@ -56,7 +63,7 @@ class GpioRpm:
             logger.warning("Ignoring GPIO warning %s", warning)
         self.__count, self.__start_time = 0, time.time()
         self.rpm = 0
-        __GPIO_DEVICES__.add(self)
+        add_gpio_device(self)
         logger.info("Created GPIO RPM device on pin %s", pin)
 
     def __str__(self):
@@ -100,7 +107,7 @@ class GpioPwm:
             raise GpioError from error
         except gpiozero.GPIOZeroWarning as warning:
             logger.warning("Ignoring GPIO warning %s", warning)
-        __GPIO_DEVICES__.add(self)
+        add_gpio_device(self)
         logger.info("Created GPIO PWM device on pin %s", pin)
 
     def __str__(self):
@@ -148,6 +155,7 @@ def main():
     except GpioError:
         logger.exception("Failed to create GPIO PWM object")
         util.terminate("Cannot continue without GPIO PWM object")
+        util.sys_exit()
     logger.debug("Created PWM GPIO device %s", gpio_pwm)
     # GPIO RPM
     try:
@@ -155,10 +163,14 @@ def main():
     except GpioError:
         logger.exception("Failed to create GPIO RPM object")
         util.terminate("Cannot continue without GPIO RPM object")
+        util.sys_exit()
     logger.debug("Created RPM GPIO device %s", gpio_rpm)
 
-    start(gpio_pwm, gpio_rpm, shelf_name=args.name,
-          address=args.address, port=args.port)
+    try:
+        start(gpio_pwm, gpio_rpm, shelf_name=args.name,
+              address=args.address, port=args.port)
+    finally:
+        util.sys_exit()
 
 
 def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
@@ -168,9 +180,10 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
         try:
             com.reset_connection(server, error, notice=notice)
             new_server = com.connect(address, port)
-        except (TimeoutError, ConnectionError):
+        except (TimeoutError, ConnectionError) as exception:
             logger.exception("Failed to connect to %s:%s", address, port)
             util.terminate("Cannot connect to server")
+            raise Exception("Cannot connect to server") from exception
         return new_server
     logger.debug("Starting client daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
@@ -205,9 +218,11 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
         else:
             try:
                 gpio_pwm.pwm = pwm_value
-            except GpioError:
+            except GpioError as error:
                 logger.exception("Failed to set PWM value for %s", gpio_pwm)
                 util.terminate("Cannot continue after GPIO failure")
+                raise Exception("Cannot continue after GPIO failure") \
+                    from error
             except ValueError:
                 logger.exception("Unexpected PWM value from %s: %s",
                                  server, pwm_value)
@@ -232,5 +247,3 @@ def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
 
         logger.info("Updated: PWM = %s, RPM = %s", pwm_value, gpio_rpm.rpm)
         util.sleep(SLEEP_TIME)
-
-    util.terminate()

@@ -17,9 +17,15 @@ class TestTerminate:
     def test_sanity(self):
         """sanity checks"""
         assert not util.terminating()
-        with pytest.raises(SystemExit):
-            util.terminate()
+        util.terminate()
         assert util.terminating()
+
+    def test_when_terminate(self):
+        """test when_terminate() function"""
+        mock_fun = mock.Mock()
+        util.when_terminate(mock_fun, 'arg1', 'arg2')
+        util.terminate()
+        mock_fun.assert_called_once_with('arg1', 'arg2')
 
 
 class TestSleep:
@@ -38,10 +44,7 @@ class TestSleep:
     def test_terminate(self, mock_sleep):
         """check when terminate() is called during sleep"""
         def term(*_):
-            try:
-                util.terminate()
-            except SystemExit:
-                pass
+            util.terminate()
         mock_sleep.side_effect = term
         util.sleep(6)
         assert util.terminating()
