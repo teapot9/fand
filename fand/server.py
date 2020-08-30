@@ -497,11 +497,7 @@ def shelf_thread(shelf):
     """Main thread for shelf"""
     logger.info("Monitoring %s", shelf)
     while not util.terminating():
-        try:
-            shelf.update()
-        except Exception as exception:
-            logger.exception("Exception during shelf %s update", shelf)
-            util.terminate(f"Shelf {shelf} thread died because {exception}")
+        shelf.update()
         util.sleep(SLEEP_TIME)
 
 
@@ -531,11 +527,22 @@ def start(config_file=find_config_file(), address=socket.gethostname(),
     read_config(config)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
+        def shelf_thread_callback(future):
+            """Callback when shelf_thread future is done"""
+            error = future.exception()
+            if error is not None:
+                logger.exception("Exception in shelf thread")
+                util.terminate(Exception(f"Shelf thread raised {error}"))
+
         logger.info("Starting shelves threads")
-        futures = [executor.submit(shelf_thread, shelf)
-                   for shelf in __SHELVES__.values()]
+        shelves = []
+        for shelf in __SHELVES__.values():
+            thread = executor.submit(shelf_thread, shelf)
+            thread.add_done_callback(shelf_thread_callback)
+            shelves.append(thread)
 
         logger.info("Listening for clients on %s:%s", address, port)
+        clients = []
         listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             listen_socket.bind((address, port))
@@ -549,7 +556,7 @@ def start(config_file=find_config_file(), address=socket.gethostname(),
                 client_socket, client_address = listen_socket.accept()
                 logger.info("New connection from %s", client_address)
                 com.add_socket(client_socket)
-                futures.append(executor.submit(listen_client, client_socket))
+                clients.append(executor.submit(listen_client, client_socket))
             except OSError:
                 logger.exception("Error while listening for clients")
                 if not util.terminating():
