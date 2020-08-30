@@ -148,7 +148,7 @@ def main():
     )
     parser.add_argument('name', nargs='?', default=socket.gethostname(),
                         help='Shelf name, defaults to hostname')
-    parser.add_argument('--pwmpin', '-P', default=18, type=int,
+    parser.add_argument('--pwmpin', '-W', default=18, type=int,
                         help="Set GPIO pin for PWM output, defaults to 2")
     parser.add_argument('--rpmpin', '-r', default=17, type=int,
                         help="Set GPIO pin for RPM input, defaults to 3")

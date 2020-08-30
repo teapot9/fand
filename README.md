@@ -74,7 +74,7 @@ Some command line examples:
 ### Usage
 
 The client connect by default to `HOSTNAME:9999`.
-The GPIO pin for the PWM signal output is configurable with the `-P` parameter,
+The GPIO pin for the PWM signal output is configurable with the `-W` parameter,
 the GPIO pin for the RPM tachometer input with the `-r` parameter.
 
 gpiozero uses Broadcom (BCM) pin numbering for the GPIO pins,
@@ -85,7 +85,7 @@ for more information.
 
 Example of command lines:
  - `fand-clientrpi` start with default configuration
- - `fand clientrpi -a server-name.local -p 1234 -P 3 -r 2` connect to
+ - `fand clientrpi -a server-name.local -p 1234 -W 3 -r 2` connect to
    server-name.local on port 1234, use GPIO pin 3 for PWM output
    and GPIO pin 2 for RPM input
 

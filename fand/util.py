@@ -1,6 +1,7 @@
 """Utility library for fand"""
 
 import logging
+import os
 import signal
 import socket
 import sys
@@ -93,6 +94,8 @@ def parse_args(parser):
                         help="Set minimal output")
     parser.add_argument('--logfile', '-l', default=None,
                         help="Send output logs to logfile")
+    parser.add_argument('--pidfile', '-P', default=None,
+                        help="Set PID file for daemon")
     args = parser.parse_args()
     if args.quiet:
         level = logging.CRITICAL
@@ -111,4 +114,7 @@ def parse_args(parser):
         formatter = logging.Formatter('%(levelname)s:%(name)s: %(message)s')
         handler.setFormatter(formatter)
         root_logger.addHandler(handler)
+    if args.pidfile is not None:
+        with open(args.pidfile, 'w') as pidfile:
+            pidfile.write(str(os.getpid()))
     return args
