@@ -49,9 +49,11 @@ class GpioRpm:
     __count: count tachometer activation
     __start_time: time at which __count started
     """
-    def __init__(self, pin):
+    def __init__(self, pin, managed=True):
         """Constructor (does not handle gpiozero exceptions)
         pin: GPIO pin number to use
+        managed: set to true to have the GPIO device automatically closed when
+            util.terminate() is called
         """
         self.__pin = pin
         try:
@@ -63,7 +65,8 @@ class GpioRpm:
             logger.warning("Ignoring GPIO warning %s", warning)
         self.__count, self.__start_time = 0, time.time()
         self.rpm = 0
-        add_gpio_device(self)
+        if managed:
+            add_gpio_device(self)
         logger.info("Created GPIO RPM device on pin %s", pin)
 
     def __str__(self):
@@ -95,9 +98,11 @@ class GpioPwm:
     pwm: PWM value, in percentage
     __gpio: gpiozero.PWMLED object for the PWM output
     """
-    def __init__(self, pin):
+    def __init__(self, pin, managed=True):
         """Constructor (does not handle gpiozero exceptions)
         pin: GPIO pin number to use
+        managed: set to true to have the GPIO device automatically closed when
+            util.terminate() is called
         """
         self.__pin = pin
         try:
@@ -107,7 +112,8 @@ class GpioPwm:
             raise GpioError from error
         except gpiozero.GPIOZeroWarning as warning:
             logger.warning("Ignoring GPIO warning %s", warning)
-        add_gpio_device(self)
+        if managed:
+            add_gpio_device(self)
         logger.info("Created GPIO PWM device on pin %s", pin)
 
     def __str__(self):
