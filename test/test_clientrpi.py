@@ -27,9 +27,9 @@ class TestGpioRpm:
             self.mock_button = mock_button
 
     def test_pressed(self):
-        """check GpioRpm.pressed()"""
+        """check GpioRpm.__pressed()"""
         assert self.rpm._GpioRpm__count == 0
-        self.rpm.pressed()
+        self.rpm._GpioRpm__pressed()
         assert self.rpm._GpioRpm__count == 1
 
     def test_update(self):

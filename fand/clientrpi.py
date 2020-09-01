@@ -58,7 +58,7 @@ class GpioRpm:
         self.__pin = pin
         try:
             self.__gpio = gpiozero.Button(pin, pull_up=True)
-            self.__gpio.when_pressed = self.pressed
+            self.__gpio.when_pressed = self.__pressed
         except gpiozero.GPIOZeroError as error:
             raise GpioError from error
         except gpiozero.GPIOZeroWarning as warning:
@@ -72,7 +72,7 @@ class GpioRpm:
     def __str__(self):
         return f"RPM on GPIO{self.__pin}"
 
-    def pressed(self):
+    def __pressed(self):
         """Increment the press count"""
         self.__count += 1
 
