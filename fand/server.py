@@ -452,7 +452,7 @@ def listen_client(client_socket):
     logger.debug("Stopping client thread for %s: socket closed", client_socket)
 
 
-def find_config_file():
+def _find_config_file():
     """Find the configuration file to use
     Use in order:
       FAND_CONFIG environment variable
@@ -507,7 +507,7 @@ def main():
         description=__DOCSTRING__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument('--config', '-c', default=find_config_file(),
+    parser.add_argument('--config', '-c', default=_find_config_file(),
                         help="Config file to parse")
     args = util.parse_args(parser)
     logger.info("Started from main entry point with parameters %s", args)
@@ -517,7 +517,7 @@ def main():
         util.sys_exit()
 
 
-def start(config_file=find_config_file(), address=socket.gethostname(),
+def start(config_file=_find_config_file(), address=socket.gethostname(),
           port=9999):
     """Main function"""
     logger.debug("Starting daemon, using config file %s", config_file)

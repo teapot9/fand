@@ -401,14 +401,14 @@ class TestReadConfigTemps:
 
 
 class TestFindConfigFile:
-    """find_config_file() tests"""
+    """_find_config_file() tests"""
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('os.path.isfile')
     def test_not_found(self, mock_isfile):
         """Test with no config file"""
         mock_isfile.return_value = False
-        assert server.find_config_file() is None
+        assert server._find_config_file() is None
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('os.path.isfile')
@@ -419,7 +419,7 @@ class TestFindConfigFile:
                 return True
             return False
         mock_isfile.side_effect = do_isfile
-        assert server.find_config_file() == '/etc/fand.ini'
+        assert server._find_config_file() == '/etc/fand.ini'
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('os.path.isfile')
@@ -430,7 +430,7 @@ class TestFindConfigFile:
                 return True
             return False
         mock_isfile.side_effect = do_isfile
-        assert server.find_config_file() == './fand.ini'
+        assert server._find_config_file() == './fand.ini'
 
     @mock.patch.dict('os.environ', {'FAND_CONFIG': 'fand config'}, clear=True)
     @mock.patch('os.path.isfile')
@@ -441,4 +441,4 @@ class TestFindConfigFile:
                 return True
             return False
         mock_isfile.side_effect = do_isfile
-        assert server.find_config_file() == 'fand config'
+        assert server._find_config_file() == 'fand config'
