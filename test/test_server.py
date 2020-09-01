@@ -386,7 +386,7 @@ class TestListenClient:
 
 
 class TestReadConfigTemps:
-    """read_config_temps() tests"""
+    """_read_config_temps() tests"""
     TEST_VALUES = {
         ' 0: 25, 37: 30, 38: 40, 39: 50, 40: 75, 41: 100':
         {0: 25, 37: 30, 38: 40, 39: 50, 40: 75, 41: 100},
@@ -397,7 +397,7 @@ class TestReadConfigTemps:
     def test_sanity(self):
         """sanity checks"""
         for test_str, test_result in type(self).TEST_VALUES.items():
-            assert server.read_config_temps(test_str) == test_result
+            assert server._read_config_temps(test_str) == test_result
 
 
 class TestFindConfigFile:

@@ -468,7 +468,7 @@ def _find_config_file():
     return None
 
 
-def read_config_temps(config_string):
+def _read_config_temps(config_string):
     """Parse a configuration string for a temperature dictionnary"""
     return {
         float(temp.split(':')[0].strip()): float(temp.split(':')[1].strip())
@@ -486,9 +486,9 @@ def read_config(config):
         for device_string in config[shelf_id]['devices'].strip().split('\n'):
             serial, position, *_ = device_string.split(';')
             devices.append(Device(serial.strip(), position.strip()))
-        hdd_temps = read_config_temps(config[shelf_id]['hdd_temps'])
-        ssd_temps = read_config_temps(config[shelf_id]['ssd_temps'])
-        cpu_temps = read_config_temps(config[shelf_id]['cpu_temps'])
+        hdd_temps = _read_config_temps(config[shelf_id]['hdd_temps'])
+        ssd_temps = _read_config_temps(config[shelf_id]['ssd_temps'])
+        cpu_temps = _read_config_temps(config[shelf_id]['cpu_temps'])
         __SHELVES__[shelf_id] = Shelf(shelf_id, devices, hdd_temps=hdd_temps,
                                       ssd_temps=ssd_temps, cpu_temps=cpu_temps)
 
