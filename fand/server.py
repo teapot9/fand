@@ -320,6 +320,11 @@ class ShelfNotFoundError(ValueError):
     """No shelf with the given name exists"""
 
 
+def add_shelf(shelf):
+    """Add a Shelf to the dictionnary of known shelves"""
+    __SHELVES__[shelf.identifier] = shelf
+
+
 def _handle_ping(client_socket):
     """Handle the ping request from a client"""
     logger.info("Received REQ_PING from %s", client_socket)
@@ -477,8 +482,11 @@ def _read_config_temps(config_string):
 
 
 def read_config(config):
-    """Read configuration from a ConfigParser object"""
+    """Read configuration from a ConfigParser object
+    Returns a set of shelves
+    """
     logger.debug("Reading configuration %s", config)
+    shelves = set()
     for shelf_id in config['DEFAULT']['shelves'].strip().split(','):
         shelf_id = shelf_id.strip()
         logger.debug("Parsing shelf %s", shelf_id)
@@ -489,8 +497,9 @@ def read_config(config):
         hdd_temps = _read_config_temps(config[shelf_id]['hdd_temps'])
         ssd_temps = _read_config_temps(config[shelf_id]['ssd_temps'])
         cpu_temps = _read_config_temps(config[shelf_id]['cpu_temps'])
-        __SHELVES__[shelf_id] = Shelf(shelf_id, devices, hdd_temps=hdd_temps,
-                                      ssd_temps=ssd_temps, cpu_temps=cpu_temps)
+        shelves.add(Shelf(shelf_id, devices, hdd_temps=hdd_temps,
+                          ssd_temps=ssd_temps, cpu_temps=cpu_temps))
+    return shelves
 
 
 def shelf_thread(shelf):
@@ -528,7 +537,8 @@ def start(config_file=_find_config_file(), address=socket.gethostname(),
         raise ValueError("No configuration file found")
     config = configparser.ConfigParser()
     config.read(config_file)
-    read_config(config)
+    for shelf in read_config(config):
+        add_shelf(shelf)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         def shelf_thread_callback(future):
