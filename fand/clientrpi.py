@@ -173,14 +173,14 @@ def main():
     logger.debug("Created RPM GPIO device %s", gpio_rpm)
 
     try:
-        start(gpio_pwm, gpio_rpm, shelf_name=args.name,
-              address=args.address, port=args.port)
+        daemon(gpio_pwm, gpio_rpm, shelf_name=args.name,
+               address=args.address, port=args.port)
     finally:
         util.sys_exit()
 
 
-def start(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
-          address=socket.gethostname(), port=9999):
+def daemon(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
+           address=socket.gethostname(), port=9999):
     """Main function of this module"""
     def reconnect(server, error=None, notice=True):
         try:
