@@ -138,7 +138,7 @@ class TestShelf:
 
         # Create shelf
         self.devices = self.hdds | self.ssds | {self.cpu}
-        self.shelf = server.Shelf('test_shelf', self.devices,
+        self.shelf = server.Shelf('test_shelf', self.devices, 60,
                                   hdd_temps, ssd_temps, cpu_temps)
 
         self.now = datetime.datetime.now(datetime.timezone.utc)

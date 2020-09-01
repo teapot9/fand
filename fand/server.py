@@ -22,8 +22,6 @@ import fand.communication as com
 __DOCSTRING__ = __doc__
 # Logger to use
 logger = logging.getLogger(__name__)
-# How much time to wait between updates
-SLEEP_TIME = 60
 
 # Global variables
 # Dictionnary of shelves, key = shelf ID
@@ -192,13 +190,14 @@ class Shelf:
     identifier: shelf identifier, string
     pwm: pwm speed of the shelf, float, percentage
     rpm: rpm of the shelf, float
+    sleep_time: how many seconds to wait between each shelf update
     __devices: dictionnary, key = device serial (string),
         value = Device instance
     __temperatures: dictionnary of dictionnaries
         {DeviceType: {temperature in deg C: pwm speed in percent}}
     """
-    def __init__(self, identifier, devices, hdd_temps=None, ssd_temps=None,
-                 cpu_temps=None):
+    def __init__(self, identifier, devices, sleep_time=60, hdd_temps=None,
+                 ssd_temps=None, cpu_temps=None):
         """Constructor
         idenifier: shelf id
         devices: list of Device instances
@@ -225,6 +224,7 @@ class Shelf:
         self.rpm = 0
         self.__pwm_override = None
         self.pwm_expire = None
+        self.sleep_time = sleep_time
 
     def __str__(self):
         return self.identifier
@@ -498,7 +498,7 @@ def shelf_thread(shelf):
     logger.info("Monitoring %s", shelf)
     while not util.terminating():
         shelf.update()
-        util.sleep(SLEEP_TIME)
+        util.sleep(shelf.sleep_time)
 
 
 def main():
