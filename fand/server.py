@@ -523,13 +523,13 @@ def main():
     args = util.parse_args(parser)
     logger.info("Started from main entry point with parameters %s", args)
     try:
-        start(config_file=args.config, address=args.address, port=args.port)
+        daemon(config_file=args.config, address=args.address, port=args.port)
     finally:
         util.sys_exit()
 
 
-def start(config_file=_find_config_file(), address=socket.gethostname(),
-          port=9999):
+def daemon(config_file=_find_config_file(), address=socket.gethostname(),
+           port=9999):
     """Main function"""
     logger.debug("Starting server daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
