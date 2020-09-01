@@ -481,11 +481,13 @@ def _read_config_temps(config_string):
     }
 
 
-def read_config(config):
-    """Read configuration from a ConfigParser object
-    Returns a set of shelves
-    """
-    logger.debug("Reading configuration %s", config)
+def read_config(config_file=_find_config_file()):
+    """Read configuration from a file, returns a set of shelves"""
+    logger.debug("Reading configuration %s", config_file)
+    if config_file is None:
+        raise ValueError("No configuration file found")
+    config = configparser.ConfigParser()
+    config.read(config_file)
     shelves = set()
     for shelf_id in config['DEFAULT']['shelves'].strip().split(','):
         shelf_id = shelf_id.strip()
@@ -529,16 +531,16 @@ def main():
 def start(config_file=_find_config_file(), address=socket.gethostname(),
           port=9999):
     """Main function"""
-    logger.debug("Starting daemon, using config file %s", config_file)
+    logger.debug("Starting server daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
     signal.signal(signal.SIGTERM, util.default_signal_handler)
-    if config_file is None:
-        util.terminate('No configuration file found')
-        raise ValueError("No configuration file found")
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    for shelf in read_config(config):
-        add_shelf(shelf)
+    try:
+        for shelf in read_config(config_file):
+            add_shelf(shelf)
+    except ValueError as error:
+        logger.exception("Error while reading config file %s", config_file)
+        util.terminate("Cannot continue without configuration")
+        raise ValueError("Cannot continue without configuration") from error
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         def shelf_thread_callback(future):
