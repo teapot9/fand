@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# PROVIDE: fand_server
+# REQUIRE: NETWORKING
+
+. /etc/rc.subr
+
+name='fand_server'
+rcvar='fand_server_enable'
+modname='fand-server'
+
+logfile="/var/log/${modname}.log"
+pidfile="/var/run/${modname}.pid"
+
+start_precmd="precmd"
+command="/usr/bin/env"
+
+precmd()
+{
+	rc_flags="${modname} --logfile ${logfile} --pidfile ${pidfile} ${rc_flags}"
+}
+
+load_rc_config "${name}"
+run_rc_command "$1"
