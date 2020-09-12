@@ -136,6 +136,15 @@ class GpioPwm:
         except gpiozero.GPIOZeroWarning as warning:
             logger.warning("Ignoring GPIO warning %s", warning)
 
+    def close(self) -> None:
+        """Close the GPIO device"""
+        try:
+            self.__gpio.close()
+        except gpiozero.GPIOZeroError as error:
+            raise GpioError from error
+        except gpiozero.GPIOZeroWarning as warning:
+            logger.warning("Ignoring GPIO warning %s", warning)
+
 
 class GpioError(gpiozero.GPIOZeroError):
     """Wrapper for gpiozero.GPIOZeroError exception"""
