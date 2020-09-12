@@ -4,6 +4,7 @@ import enum
 import logging
 import pickle
 import socket
+from typing import (Any, Optional, Set, Tuple)
 
 import fand.util as util
 
@@ -17,11 +18,11 @@ HEADER_SIZE = HEADER_MAGIC_SIZE + HEADER_DATA_SIZE
 logger = logging.getLogger(__name__)
 
 # List of open sockets, closed when program exits
-__SOCKETS__ = set()
+__SOCKETS__: Set[socket.socket] = set()
 
 
 @util.when_terminate
-def _terminate():
+def _terminate() -> None:
     for sock in __SOCKETS__.copy():
         reset_connection(sock)
 
@@ -39,7 +40,7 @@ class Request(enum.Enum):
     SET_PWM_EXPIRE = 'set_pwm_expire'
 
 
-def add_socket(sock):
+def add_socket(sock: socket.socket) -> None:
     """Add sock to the set of managed sockets
     It can be removed with reset_connection()
     and will automatically be when util.terminate() is run
@@ -50,12 +51,12 @@ def add_socket(sock):
     __SOCKETS__.add(sock)
 
 
-def is_socket_open(sock):
+def is_socket_open(sock: socket.socket) -> bool:
     """Return True if sock is currently managed by this module"""
     return sock in __SOCKETS__
 
 
-def send(sock, request, *args):
+def send(sock: socket.socket, request: Request, *args: Any) -> None:
     """Send a request to a remote socket"""
     logger.debug("Sending %s to %s with arguments %s", request, sock, args)
 
@@ -80,7 +81,7 @@ def send(sock, request, *args):
     logger.debug("%s sent to %s", request, sock)
 
 
-def recv(sock):
+def recv(sock: socket.socket) -> Tuple[Request, Tuple]:
     """Receive a request from a remote socket"""
     logger.debug("Waiting for data from %s", sock)
 
@@ -118,7 +119,7 @@ def recv(sock):
     return (request, args)
 
 
-def connect(address, port):
+def connect(address: str, port: int) -> socket.socket:
     """Connect to server and return socket"""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.settimeout(10)
@@ -133,7 +134,11 @@ def connect(address, port):
     return server
 
 
-def reset_connection(client_socket, error_msg=None, notice=True):
+def reset_connection(
+        client_socket: socket.socket,
+        error_msg: Optional[str] = None,
+        notice: bool = True,
+        ) -> None:
     """Closes a connection to a client
     error: error to send (string, exception)
     notice: send a notice about the reset to the remote socket

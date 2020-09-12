@@ -6,8 +6,13 @@ import signal
 import socket
 import sys
 import time
+from typing import (Any, Callable, List, NoReturn, Optional, Tuple,
+                    TYPE_CHECKING)
 
 from fand import __version__
+
+if TYPE_CHECKING:
+    import argparse
 
 # Constants
 # Logger to use
@@ -17,12 +22,12 @@ logger = logging.getLogger(__name__)
 # Set by terminate(), get by terminating()
 __TERMINATE__ = False
 # Store the terminate error
-__TERMINATE_ERROR__ = None
+__TERMINATE_ERROR__: Optional[str] = None
 # List of functions to call when the program is terminating
-__WHEN_TERMINATE__ = []
+__WHEN_TERMINATE__: List[Tuple[Callable, Tuple]] = []
 
 
-def terminate(error=None):
+def terminate(error: Optional[str] = None) -> None:
     """Function terminating the program
     Sets the terminate flag (see terminating()), and does some cleanup
     (see when_terminate())
@@ -40,7 +45,7 @@ def terminate(error=None):
         function(*args)
 
 
-def sys_exit():
+def sys_exit() -> NoReturn:
     """Exit the program with the error from terminate()"""
     if not __TERMINATE__:
         terminate()
@@ -50,17 +55,17 @@ def sys_exit():
         sys.exit(__TERMINATE_ERROR__)
 
 
-def terminating():
+def terminating() -> bool:
     """Returns True if the program is terminating, else False"""
     return __TERMINATE__
 
 
-def when_terminate(function, *args):
+def when_terminate(function: Callable, *args: Any) -> None:
     """Add function to call when terminating"""
     __WHEN_TERMINATE__.append((function, args))
 
 
-def sleep(secs):
+def sleep(secs: float) -> None:
     """Sleep secs seconds, stops if terminating"""
     logger.debug("Waiting for %s seconds", secs)
     while secs > 0 and not terminating():
@@ -68,7 +73,7 @@ def sleep(secs):
         secs -= 1
 
 
-def default_signal_handler(sig, _):
+def default_signal_handler(sig: signal.Signals, _: Any) -> None:
     """Default signal handler"""
     if sig == signal.SIGINT:
         logger.warning("Received SIGINT, terminating")
@@ -80,7 +85,7 @@ def default_signal_handler(sig, _):
         logger.error("Unknown signal %s received, ignoring", sig)
 
 
-def parse_args(parser):
+def parse_args(parser: 'argparse.ArgumentParser') -> 'argparse.Namespace':
     """Add common arguments, parse arguments, set root logger verbosity"""
     parser.add_argument('--version', '-V', action='version',
                         version='%(prog)s '+__version__)

@@ -5,6 +5,7 @@ import logging
 import signal
 import socket
 import time
+from typing import (NoReturn, Optional, Set, Union)
 
 import gpiozero
 
@@ -17,15 +18,15 @@ __DOCSTRING__ = __doc__
 # Logger to use
 logger = logging.getLogger(__name__)
 # How much time to wait between updates
-SLEEP_TIME = 60
+SLEEP_TIME: float = 60
 
 # Global variables
 # Set of active GPIO devices, closed when program exits
-__GPIO_DEVICES__ = set()
+__GPIO_DEVICES__: Set[Union['GpioRpm', 'GpioPwm']] = set()
 
 
 @util.when_terminate
-def _terminate():
+def _terminate() -> None:
     for device in __GPIO_DEVICES__.copy():
         try:
             device.close()
@@ -34,7 +35,7 @@ def _terminate():
         __GPIO_DEVICES__.remove(device)
 
 
-def add_gpio_device(device):
+def add_gpio_device(device: Union['GpioRpm', 'GpioPwm']) -> None:
     """Add a GPIO device to the set of managed GPIO devices"""
     if util.terminating():
         raise Exception("Cannot add new GPIO device while terminating")
@@ -49,7 +50,7 @@ class GpioRpm:
     __count: count tachometer activation
     __start_time: time at which __count started
     """
-    def __init__(self, pin, managed=True):
+    def __init__(self, pin: int, managed: bool = True) -> None:
         """Constructor (does not handle gpiozero exceptions)
         pin: GPIO pin number to use
         managed: set to true to have the GPIO device automatically closed when
@@ -64,25 +65,25 @@ class GpioRpm:
         except gpiozero.GPIOZeroWarning as warning:
             logger.warning("Ignoring GPIO warning %s", warning)
         self.__count, self.__start_time = 0, time.time()
-        self.rpm = 0
+        self.rpm: float = 0
         if managed:
             add_gpio_device(self)
         logger.info("Created GPIO RPM device on pin %s", pin)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"RPM on GPIO{self.__pin}"
 
-    def __pressed(self):
+    def __pressed(self) -> None:
         """Increment the press count"""
         self.__count += 1
 
-    def update(self):
+    def update(self) -> None:
         """Update the RPM value"""
         self.rpm = (self.__count / 2) / (time.time() - self.__start_time) * 60
         self.__count, self.__start_time = 0, time.time()
         logger.debug("Updating RPM value to %s", self.rpm)
 
-    def close(self):
+    def close(self) -> None:
         """Close the GPIO device"""
         try:
             self.__gpio.close()
@@ -98,7 +99,7 @@ class GpioPwm:
     pwm: PWM value, in percentage
     __gpio: gpiozero.PWMLED object for the PWM output
     """
-    def __init__(self, pin, managed=True):
+    def __init__(self, pin: int, managed: bool = True) -> None:
         """Constructor (does not handle gpiozero exceptions)
         pin: GPIO pin number to use
         managed: set to true to have the GPIO device automatically closed when
@@ -116,16 +117,16 @@ class GpioPwm:
             add_gpio_device(self)
         logger.info("Created GPIO PWM device on pin %s", pin)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"PWM on GPIO{self.__pin}"
 
     @property
-    def pwm(self):
+    def pwm(self) -> float:
         """PWM output value, backend is gpiozero.PWMLED.value"""
         return self.__gpio.value * 100
 
     @pwm.setter
-    def pwm(self, value):
+    def pwm(self, value: float) -> None:
         if value > 100 or value < 0:
             raise ValueError("PWM value must be between 0 and 100")
         try:
@@ -140,7 +141,7 @@ class GpioError(gpiozero.GPIOZeroError):
     """Wrapper for gpiozero.GPIOZeroError exception"""
 
 
-def main():
+def main() -> NoReturn:
     """Module entry point"""
     parser = argparse.ArgumentParser(
         description=__DOCSTRING__,
@@ -179,10 +180,17 @@ def main():
         util.sys_exit()
 
 
-def daemon(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
-           address=socket.gethostname(), port=9999):
+def daemon(
+        gpio_pwm: GpioPwm,
+        gpio_rpm: GpioRpm,
+        shelf_name: str = socket.gethostname(),
+        address: str = socket.gethostname(),
+        port: int = 9999,
+        ) -> None:
     """Main function of this module"""
-    def reconnect(server, error=None, notice=True):
+    def reconnect(server: Optional[socket.socket] = None,
+                  error: Optional[str] = None,
+                  notice: bool = True) -> socket.socket:
         try:
             com.reset_connection(server, error, notice=notice)
             new_server = com.connect(address, port)
@@ -194,7 +202,7 @@ def daemon(gpio_pwm, gpio_rpm, shelf_name=socket.gethostname(),
     logger.debug("Starting client daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
     signal.signal(signal.SIGTERM, util.default_signal_handler)
-    server = reconnect(None)
+    server = reconnect()
 
     while not util.terminating():
         logger.info("Updating informations")

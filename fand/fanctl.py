@@ -7,6 +7,7 @@ import re
 import signal
 import socket
 import sys
+from typing import (Any, Callable, Dict, NoReturn)
 
 import fand.util as util
 import fand.communication as com
@@ -68,7 +69,7 @@ DATETIME_DURATION_FORMATS = [
 ]
 
 
-def _action_send_raw(server, *args):
+def _action_send_raw(server: socket.socket, *args: Any) -> None:
     """Send raw request, print the returned request"""
     logger.debug("Sending raw request to %s", server)
     com.send(server, *args)
@@ -76,7 +77,7 @@ def _action_send_raw(server, *args):
     print(f"{req}{args}")
 
 
-def _action_ping(server):
+def _action_ping(server: socket.socket) -> None:
     """Send ping"""
     logger.debug("Sending ping to %s", server)
     com.send(server, com.Request.PING)
@@ -88,7 +89,7 @@ def _action_ping(server):
         print("ok")
 
 
-def _action_get_shelf_pwm(server, shelf_id):
+def _action_get_shelf_pwm(server: socket.socket, shelf_id: str) -> None:
     """Get shelf PWM speed"""
     logger.debug("Sending get pwm to %s for %s", server, shelf_id)
     com.send(server, com.Request.GET_PWM, shelf_id)
@@ -103,7 +104,7 @@ def _action_get_shelf_pwm(server, shelf_id):
         print(args[1])
 
 
-def _action_get_shelf_rpm(server, shelf_id):
+def _action_get_shelf_rpm(server: socket.socket, shelf_id: str) -> None:
     """Get shelf RPM speed"""
     logger.debug("Sending get rpm to %s for %s", server, shelf_id)
     com.send(server, com.Request.GET_RPM, shelf_id)
@@ -118,7 +119,8 @@ def _action_get_shelf_rpm(server, shelf_id):
         print(args[1])
 
 
-def _action_set_pwm_override(server, shelf_id, value_str):
+def _action_set_pwm_override(server: socket.socket, shelf_id: str,
+                             value_str: str) -> None:
     """Override shelf PWM value to value_str"""
     logger.debug("Overriding PWM of %s to %s", shelf_id, value_str)
     if str(value_str).lower() == 'none':
@@ -136,7 +138,8 @@ def _action_set_pwm_override(server, shelf_id, value_str):
         print("ok")
 
 
-def _action_set_pwm_expire_on(server, shelf_id, date_str):
+def _action_set_pwm_expire_on(server: socket.socket, shelf_id: str,
+                              date_str: str) -> None:
     """Set shelf PWM override expiration to date_str"""
     logger.debug("Setting PWM override on %s for %s", date_str, shelf_id)
     if sys.version_info < (3, 7) and re.search(r'[+-]\d\d:\d\d$', date_str):
@@ -165,7 +168,8 @@ def _action_set_pwm_expire_on(server, shelf_id, date_str):
         print("ok")
 
 
-def _action_set_pwm_expire_in(server, shelf_id, duration_str):
+def _action_set_pwm_expire_in(server: socket.socket, shelf_id: str,
+                              duration_str: str) -> None:
     """Set shelf PWM override expiration in duration_str"""
     logger.debug("Setting PWM override in %s for %s", duration_str, shelf_id)
     for test_str in DATETIME_DURATION_FORMATS:
@@ -195,7 +199,7 @@ def _action_set_pwm_expire_in(server, shelf_id, duration_str):
         print("ok")
 
 
-ACTION_DICT = {
+ACTION_DICT: Dict[str, Callable] = {
     'raw': _action_send_raw,
     'ping': _action_ping,
     'shelfpwm': _action_get_shelf_pwm,
@@ -206,7 +210,7 @@ ACTION_DICT = {
 }
 
 
-def main():
+def main() -> NoReturn:
     """Entry point of the module"""
     parser = argparse.ArgumentParser(
         description=__DOCSTRING__,
@@ -223,7 +227,12 @@ def main():
         util.sys_exit()
 
 
-def send(action, *args, address=socket.gethostname(), port=9999):
+def send(
+        action: str,
+        *args: Any,
+        address: str = socket.gethostname(),
+        port: int = 9999,
+        ) -> None:
     """Main function of this module"""
     logger.debug("Running action %s", action)
     signal.signal(signal.SIGINT, util.default_signal_handler)
