@@ -9,6 +9,7 @@ __version__ = '0.1.0'
 
 import logging
 import sys
+from typing import no_type_check
 
 logging.basicConfig(
     format='%(levelname)s:%(name)s: %(message)s',
@@ -22,6 +23,7 @@ if sys.version_info >= (3, 8):
         import pySMART
 
         class _WrapperPysmartLogger(pySMART.utils.TraceLogger):
+            @no_type_check
             def findCaller(self, stack_info=False, stacklevel=1):
                 return super().findCaller(stack_info)
 
