@@ -23,7 +23,7 @@ try:
         def findCaller(self, stack_info=False, stacklevel=1):
             return super().findCaller(stack_info)
 
-    if logging.handlers.logging.getLoggerClass() == pySMART.utils.TraceLogger:
+    if logging.getLoggerClass() == pySMART.utils.TraceLogger:
         logging.setLoggerClass(_WrapperPysmartLogger)
 except ImportError:
     pass
