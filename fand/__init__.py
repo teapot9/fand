@@ -8,6 +8,7 @@ __url__ = 'https://github.com/lleseur/fand'
 __version__ = '0.1.0'
 
 import logging
+import sys
 
 logging.basicConfig(
     format='%(levelname)s:%(name)s: %(message)s',
@@ -16,14 +17,15 @@ logging.basicConfig(
 
 # Workaround pySMART bug with Python 3.8 logging API
 # Keep until pySMART's next release
-try:
-    import pySMART
+if sys.version_info >= (3, 8):
+    try:
+        import pySMART
 
-    class _WrapperPysmartLogger(pySMART.utils.TraceLogger):
-        def findCaller(self, stack_info=False, stacklevel=1):
-            return super().findCaller(stack_info)
+        class _WrapperPysmartLogger(pySMART.utils.TraceLogger):
+            def findCaller(self, stack_info=False, stacklevel=1):
+                return super().findCaller(stack_info)
 
-    if logging.getLoggerClass() == pySMART.utils.TraceLogger:
-        logging.setLoggerClass(_WrapperPysmartLogger)
-except ImportError:
-    pass
+        if logging.getLoggerClass() == pySMART.utils.TraceLogger:
+            logging.setLoggerClass(_WrapperPysmartLogger)
+    except ImportError:
+        pass
