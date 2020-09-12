@@ -178,7 +178,7 @@ def _action_set_pwm_expire_in(server: socket.socket, shelf_id: str,
             break
     else:
         raise ValueError(f"Cannot convert {duration_str} to timedelta object")
-    match_dict = {k: v for k, v in match.groupdict().items() if v is not None}
+    match_dict = match.groupdict('0')
     duration = datetime.timedelta(
         days=int(match_dict.get('day', 0)),
         hours=int(match_dict.get('h', 0)),
