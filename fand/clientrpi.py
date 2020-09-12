@@ -201,13 +201,13 @@ def daemon(
                   error: Optional[str] = None,
                   notice: bool = True) -> socket.socket:
         try:
-            com.reset_connection(server, error, notice=notice)
-            new_server = com.connect(address, port)
+            if server is not None:
+                com.reset_connection(server, error, notice=notice)
+            return com.connect(address, port)
         except (TimeoutError, ConnectionError) as exception:
             logger.exception("Failed to connect to %s:%s", address, port)
             util.terminate("Cannot connect to server")
             raise Exception("Cannot connect to server") from exception
-        return new_server
     logger.debug("Starting client daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
     signal.signal(signal.SIGTERM, util.default_signal_handler)
