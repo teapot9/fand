@@ -152,9 +152,6 @@ def _action_set_pwm_expire_on(server: socket.socket, shelf_id: str,
             break
         except ValueError:
             pass
-        except AttributeError as error:
-            raise AttributeError(f"Expected string, got {type(date_str)}") \
-                from error
     else:
         raise ValueError(f"Could not convert {date_str} to a datetime object")
     logger.debug("Sending set PWM expire on %s for %s to %s",
