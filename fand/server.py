@@ -324,8 +324,9 @@ class Shelf:
         pwm_list = []
         for dev_type, effective_temp in effective_temps.items():
             pwm_list.append(max(
-                speed for temp, speed in self.__temperatures[dev_type].items()
-                if effective_temp >= temp
+                (speed for temp, speed in self.__temperatures[dev_type].items()
+                if effective_temp >= temp),
+                default=self.__temperatures[dev_type][0]
             ))
         logger.debug("Effective PWM values are: %s", pwm_list)
 

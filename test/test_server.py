@@ -245,6 +245,28 @@ class TestShelf:
         self.shelf.update()
         assert self.shelf.pwm == 80
 
+    def test_update_low_temps(self):
+        """update() checks for low temps"""
+        for hdd in self.hdds:
+            hdd.temperature = -10
+        for ssd in self.ssds:
+            ssd.temperature = -10
+        self.cpu.temperature = -10
+        next(iter(self.hdds)).temperature = -5
+        self.shelf.update()
+        assert self.shelf.pwm == 25
+
+    def test_update_high_temps(self):
+        """update() checks for high temps"""
+        for hdd in self.hdds:
+            hdd.temperature = 30
+        for ssd in self.ssds:
+            ssd.temperature = 30
+        self.cpu.temperature = 86
+        next(iter(self.hdds)).temperature = 1000
+        self.shelf.update()
+        assert self.shelf.pwm == 100
+
 
 class TestHandlePing:
     """_handle_ping() tests"""
