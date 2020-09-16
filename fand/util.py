@@ -6,7 +6,7 @@ import signal
 import socket
 import sys
 import time
-from typing import (Any, Callable, List, NoReturn, Optional, Tuple,
+from typing import (Any, Callable, List, NoReturn, Optional, Tuple, Dict,
                     TYPE_CHECKING)
 
 from fand import __version__
@@ -24,7 +24,7 @@ __TERMINATE__ = False
 # Store the terminate error
 __TERMINATE_ERROR__: Optional[str] = None
 # List of functions to call when the program is terminating
-__WHEN_TERMINATE__: List[Tuple[Callable, Tuple]] = []
+__WHEN_TERMINATE__: List[Tuple[Callable, Tuple, Dict]] = []
 
 
 def terminate(error: Optional[str] = None) -> None:
@@ -41,8 +41,8 @@ def terminate(error: Optional[str] = None) -> None:
     logger.info("Terminating...")
     __TERMINATE__ = True
     __TERMINATE_ERROR__ = error
-    for function, args in __WHEN_TERMINATE__:
-        function(*args)
+    for function, args, kwargs in __WHEN_TERMINATE__:
+        function(*args, **kwargs)
 
 
 def sys_exit() -> NoReturn:
@@ -60,9 +60,9 @@ def terminating() -> bool:
     return __TERMINATE__
 
 
-def when_terminate(function: Callable, *args: Any) -> None:
+def when_terminate(function: Callable, *args: Any, **kwargs: Any) -> None:
     """Add function to call when terminating"""
-    __WHEN_TERMINATE__.append((function, args))
+    __WHEN_TERMINATE__.append((function, args, kwargs))
 
 
 def sleep(secs: float) -> None:
