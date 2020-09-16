@@ -18,6 +18,7 @@ import pySMART as pysmart
 
 import fand.util as util
 import fand.communication as com
+from fand.exceptions import (ShelfNotFoundError)
 
 # Constants
 # Module docstring
@@ -325,10 +326,6 @@ class Shelf:
         # Get final PWM speed
         self.__pwm = max(pwm_list)
         logger.info("PWM speed for shelf %s is %s", self, self.__pwm)
-
-
-class ShelfNotFoundError(ValueError):
-    """No shelf with the given name exists"""
 
 
 def add_shelf(shelf: Shelf) -> None:

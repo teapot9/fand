@@ -11,6 +11,7 @@ import gpiozero
 
 import fand.util as util
 import fand.communication as com
+from fand.exceptions import (GpioError)
 
 # Constants
 # Module docstring
@@ -38,7 +39,7 @@ def _terminate() -> None:
 def add_gpio_device(device: Union['GpioRpm', 'GpioPwm']) -> None:
     """Add a GPIO device to the set of managed GPIO devices"""
     if util.terminating():
-        raise Exception("Cannot add new GPIO device while terminating")
+        raise GpioError("Cannot add new GPIO device while terminating")
     __GPIO_DEVICES__.add(device)
 
 
@@ -144,10 +145,6 @@ class GpioPwm:
             raise GpioError from error
         except gpiozero.GPIOZeroWarning as warning:
             logger.warning("Ignoring GPIO warning %s", warning)
-
-
-class GpioError(gpiozero.GPIOZeroError):
-    """Wrapper for gpiozero.GPIOZeroError exception"""
 
 
 def main() -> NoReturn:
