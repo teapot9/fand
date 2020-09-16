@@ -11,6 +11,9 @@ from typing import (Any, Callable, Dict, NoReturn)
 
 import fand.util as util
 import fand.communication as com
+from fand.exceptions import (
+    ShelfPwmExpireBadValue, FanctlActionBadValue, CommunicationError
+)
 
 # Constants
 # Module docstring
@@ -153,7 +156,9 @@ def _action_set_pwm_expire_on(server: socket.socket, shelf_id: str,
         except ValueError:
             pass
     else:
-        raise ValueError(f"Could not convert {date_str} to a datetime object")
+        raise ShelfPwmExpireBadValue(
+            f"Could not convert {date_str} to a datetime object"
+        )
     logger.debug("Sending set PWM expire on %s for %s to %s",
                  date, shelf_id, server)
     com.send(server, com.Request.SET_PWM_EXPIRE, shelf_id, date)
@@ -174,7 +179,9 @@ def _action_set_pwm_expire_in(server: socket.socket, shelf_id: str,
         if match:
             break
     else:
-        raise ValueError(f"Cannot convert {duration_str} to timedelta object")
+        raise ShelfPwmExpireBadValue(
+            f"Cannot convert {duration_str} to a timedelta object"
+        )
     match_dict = match.groupdict('0')
     duration = datetime.timedelta(
         days=int(match_dict.get('day', 0)),
@@ -236,10 +243,10 @@ def send(
     signal.signal(signal.SIGTERM, util.default_signal_handler)
     try:
         server = com.connect(address, port)
-    except (TimeoutError, ConnectionError) as error:
+    except CommunicationError:
         logger.exception("Failed to connect to %s:%s", address, port)
         util.terminate("Cannot connect to server")
-        raise Exception("Cannot connect to server") from error
+        raise
     handler = ACTION_DICT.get(action)
     if not handler:
         logger.error("Invalid action %s", action)
@@ -249,12 +256,12 @@ def send(
         except TypeError as error:
             logger.exception("Invalid call to acion %s", action)
             util.terminate("Invalid action")
-            raise Exception("Invalid action") from error
+            raise FanctlActionBadValue("Invalid action") from error
         except ValueError as error:
             logger.exception("Received value error in action %s", action)
             util.terminate("Invalid arguments")
-            raise Exception("Invalid arguments") from error
-        except ConnectionResetError as error:
+            raise FanctlActionBadValue("Invalid arguments") from error
+        except ConnectionResetError:
             logger.error("Connection reset by server during %s", action)
             util.terminate("Connection reset by server")
-            raise Exception("Connection reset by server") from error
+            raise

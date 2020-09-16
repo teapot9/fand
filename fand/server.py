@@ -18,7 +18,11 @@ import pySMART as pysmart
 
 import fand.util as util
 import fand.communication as com
-from fand.exceptions import (ShelfNotFoundError)
+from fand.exceptions import (
+    ShelfNotFoundError, ShelfTemperatureBadValue, ShelfRpmBadValue,
+    ShelfPwmBadValue, ShelfPwmExpireBadValue, ServerNoConfigError,
+    ListeningError, CommunicationError
+)
 
 # Constants
 # Module docstring
@@ -229,7 +233,9 @@ class Shelf:
             if dev_temps.get(0) is None:
                 logger.critical("%s has no 0 temperature configured: %s",
                                 dev_type, dev_temps)
-                raise ValueError(f"{dev_type} has no 0 temperature")
+                raise ShelfTemperatureBadValue(
+                    f"{dev_type} has no 0 temperature key"
+                )
         self.__pwm: float = 100
         self.rpm = 0
         self.__pwm_override: Optional[float] = None
@@ -250,7 +256,7 @@ class Shelf:
     @rpm.setter
     def rpm(self, speed: float) -> None:
         if speed < 0:
-            raise ValueError("RPM cannot be below zero")
+            raise ShelfRpmBadValue("RPM cannot be below zero")
         self.__rpm = speed
 
     @property
@@ -268,7 +274,7 @@ class Shelf:
     @pwm.setter
     def pwm(self, speed: Optional[float] = None) -> None:
         if speed is not None and (speed < 0 or speed > 100):
-            raise ValueError("PWM must be between 0 and 100")
+            raise ShelfPwmBadValue("PWM must be between 0 and 100")
         self.__pwm_override = speed
 
     @property
@@ -288,7 +294,7 @@ class Shelf:
             date = date.replace(tzinfo=localtz)
         now = datetime.datetime.now(date.tzinfo)
         if date < now:
-            raise ValueError(f"Expiration {date} is before now {now}")
+            raise ShelfPwmExpireBadValue(f"{date} is in the past")
         self.__pwm_expire = date
 
     def update(self) -> None:
@@ -429,7 +435,7 @@ def listen_client(client_socket: socket.socket) -> None:
             logger.info("Connection reset by %s", client_socket)
             com.reset_connection(client_socket, notice=False)
             continue
-        except ConnectionError:
+        except CommunicationError:
             logger.exception("Connection error from %s", client_socket)
             com.reset_connection(client_socket)
             continue
@@ -453,7 +459,7 @@ def listen_client(client_socket: socket.socket) -> None:
             logger.exception("%s timed out", client_socket)
             com.reset_connection(client_socket)
             continue
-        except ConnectionError:
+        except CommunicationError:
             logger.exception("Connection error from %s", client_socket)
             com.reset_connection(client_socket)
             continue
@@ -497,7 +503,7 @@ def read_config(config_file: Optional[str] = _find_config_file()) \
     """Read configuration from a file, returns a set of shelves"""
     logger.debug("Reading configuration %s", config_file)
     if config_file is None:
-        raise ValueError("No configuration file found")
+        raise ServerNoConfigError("No configuration file found")
     config = configparser.ConfigParser()
     config.read(config_file)
     shelves = set()
@@ -552,10 +558,10 @@ def daemon(
     try:
         for shelf in read_config(config_file):
             add_shelf(shelf)
-    except ValueError as error:
+    except ServerNoConfigError:
         logger.exception("Error while reading config file %s", config_file)
         util.terminate("Cannot continue without configuration")
-        raise ValueError("Cannot continue without configuration") from error
+        raise
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         def shelf_thread_callback(future: concurrent.futures.Future) -> None:
@@ -580,8 +586,9 @@ def daemon(
         except OSError as error:
             logger.exception("Failed to bind to %s:%s", address, port)
             util.terminate("Cannot bind to requested interface and port")
-            raise Exception("Cannot bind to requested interface and port") \
-                from error
+            raise ListeningError(
+                f"Cannot bind to requested interface {address}:{port}"
+            ) from error
         com.add_socket(listen_socket)
         while com.is_socket_open(listen_socket):
             try:
@@ -592,5 +599,6 @@ def daemon(
             except OSError as error:
                 if not util.terminating():
                     util.terminate("Error while listening for clients")
-                    raise Exception("Error while listening for clients") \
-                        from error
+                    raise ListeningError(
+                        "Error while listening for clients"
+                    ) from error

@@ -7,6 +7,10 @@ import socket
 from typing import (Any, Optional, Set, Tuple)
 
 import fand.util as util
+from fand.exceptions import (
+    TerminatingError, UnpicklableError, FandTimeoutError, SendReceiveError,
+    FandConnectionResetError, CorruptedDataError, ConnectionFailedError
+)
 
 # Header = magic number + data size
 HEADER_MAGIC = b'99F9'
@@ -47,7 +51,7 @@ def add_socket(sock: socket.socket) -> None:
     """
     logger.debug("Adding socket %s", sock)
     if util.terminating():
-        raise Exception("Cannot create sockets while terminating")
+        raise TerminatingError("Cannot create sockets while terminating")
     __SOCKETS__.add(sock)
 
 
@@ -64,7 +68,7 @@ def send(sock: socket.socket, request: Request, *args: Any) -> None:
         data = (request, args)
         data_bytes = pickle.dumps(data)
     except (pickle.PickleError, TypeError, ValueError) as error:
-        raise ValueError() from error
+        raise UnpicklableError() from error
 
     data_size = format(len(data_bytes), 'x').zfill(HEADER_DATA_SIZE)
     header_bytes = HEADER_MAGIC + bytes(data_size, 'utf-8')
@@ -72,11 +76,11 @@ def send(sock: socket.socket, request: Request, *args: Any) -> None:
     try:
         bytes_sent = sock.send(header_bytes + data_bytes)
     except socket.timeout as error:
-        raise TimeoutError(f"Timeout from {sock}") from error
+        raise FandTimeoutError(f"Timeout from {sock}") from error
     except OSError as error:
-        raise ConnectionError(f"OSError from {sock}") from error
+        raise SendReceiveError(f"OSError {error} from {sock}") from error
     if bytes_sent != HEADER_SIZE + len(data_bytes):
-        raise ConnectionError(f"Not all data sent to {sock}")
+        raise SendReceiveError(f"Not all data sent to {sock}")
 
     logger.debug("%s sent to %s", request, sock)
 
@@ -88,34 +92,34 @@ def recv(sock: socket.socket) -> Tuple[Request, Tuple]:
     try:
         header = sock.recv(HEADER_SIZE)
     except socket.timeout as error:
-        raise TimeoutError(f"Timeout from {sock}") from error
+        raise FandTimeoutError(f"Timeout from {sock}") from error
     except OSError as error:
-        raise ConnectionError(f"OSError from {sock}") from error
+        raise SendReceiveError(f"OSError {error} from {sock}") from error
     if not header:
-        raise ConnectionResetError(f"Nothing received from {sock}")
+        raise FandConnectionResetError(f"Nothing received from {sock}")
     if len(header) != HEADER_SIZE:
-        raise ConnectionError(f"Invalid header size from {sock}")
+        raise CorruptedDataError(f"Invalid header size from {sock}")
 
     magic = header[0:HEADER_MAGIC_SIZE]
     data_size = int(header[HEADER_MAGIC_SIZE:HEADER_SIZE], base=16)
     if magic != HEADER_MAGIC:
-        raise ConnectionError(f"Invalid magic number from {sock}")
+        raise CorruptedDataError(f"Invalid magic number from {sock}")
 
     try:
         data_bytes = sock.recv(data_size)
         request, args = pickle.loads(data_bytes)
     except socket.timeout as error:
-        raise TimeoutError(f"Timeout from {sock}") from error
+        raise FandTimeoutError(f"Timeout from {sock}") from error
     except OSError as error:
-        raise ConnectionError(f"OSError from {sock}") from error
+        raise SendReceiveError(f"OSError {error} from {sock}") from error
     except (pickle.PickleError, TypeError, ValueError) as error:
-        raise ValueError() from error
+        raise CorruptedDataError("Cannot unpickle data") from error
 
     logger.debug("Received %s from %s with arguments %s", request, sock, args)
     if request == Request.DISCONNECT:
         if len(args) >= 1 and args[0] is not None:
             logger.error("Error: %s from socket %s", args[0], sock)
-        raise ConnectionResetError(f"Connection reset by {sock}")
+        raise FandConnectionResetError(f"Connection reset by {sock}")
     return (request, args)
 
 
@@ -126,9 +130,11 @@ def connect(address: str, port: int) -> socket.socket:
     try:
         server.connect((address, port))
     except socket.timeout as error:
-        raise TimeoutError() from error
+        raise FandTimeoutError() from error
     except OSError as error:
-        raise ConnectionError() from error
+        raise ConnectionFailedError(
+            f"Could not connect to {address}:{port}"
+        ) from error
     add_socket(server)
     logger.info("Connected to %s:%s, created %s", address, port, server)
     return server

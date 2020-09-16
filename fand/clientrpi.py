@@ -11,7 +11,9 @@ import gpiozero
 
 import fand.util as util
 import fand.communication as com
-from fand.exceptions import (GpioError)
+from fand.exceptions import (
+    GpioError, TerminatingError, ShelfPwmBadValue, CommunicationError
+)
 
 # Constants
 # Module docstring
@@ -39,7 +41,7 @@ def _terminate() -> None:
 def add_gpio_device(device: Union['GpioRpm', 'GpioPwm']) -> None:
     """Add a GPIO device to the set of managed GPIO devices"""
     if util.terminating():
-        raise GpioError("Cannot add new GPIO device while terminating")
+        raise TerminatingError("Cannot add new GPIO device while terminating")
     __GPIO_DEVICES__.add(device)
 
 
@@ -129,7 +131,7 @@ class GpioPwm:
     @pwm.setter
     def pwm(self, value: float) -> None:
         if value > 100 or value < 0:
-            raise ValueError("PWM value must be between 0 and 100")
+            raise ShelfPwmBadValue("PWM value must be between 0 and 100")
         try:
             self.__gpio.value = value / 100
         except gpiozero.GPIOZeroError as error:
@@ -201,10 +203,10 @@ def daemon(
             if server is not None:
                 com.reset_connection(server, error, notice=notice)
             return com.connect(address, port)
-        except (TimeoutError, ConnectionError) as exception:
+        except CommunicationError:
             logger.exception("Failed to connect to %s:%s", address, port)
             util.terminate("Cannot connect to server")
-            raise Exception("Cannot connect to server") from exception
+            raise
     logger.debug("Starting client daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
     signal.signal(signal.SIGTERM, util.default_signal_handler)
@@ -221,7 +223,7 @@ def daemon(
         except ConnectionResetError:
             logger.info("Connection reset by %s", server)
             server = reconnect(server, notice=False)
-        except (TimeoutError, ConnectionError):
+        except CommunicationError:
             logger.exception("Failed to get PWM value from %s", server)
             server = reconnect(server)
         except ValueError:
@@ -238,11 +240,10 @@ def daemon(
         else:
             try:
                 gpio_pwm.pwm = pwm_value
-            except GpioError as error:
+            except GpioError:
                 logger.exception("Failed to set PWM value for %s", gpio_pwm)
                 util.terminate("Cannot continue after GPIO failure")
-                raise Exception("Cannot continue after GPIO failure") \
-                    from error
+                raise
             except ValueError:
                 logger.exception("Unexpected PWM value from %s: %s",
                                  server, pwm_value)
@@ -257,7 +258,7 @@ def daemon(
         except ConnectionResetError:
             logger.info("Connection reset by %s", server)
             server = reconnect(server, notice=False)
-        except (TimeoutError, ConnectionError):
+        except CommunicationError:
             logger.exception("Failed to get RPM value from %s", server)
             server = reconnect(server)
         if req != com.Request.ACK:
