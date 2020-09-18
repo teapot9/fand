@@ -3,10 +3,10 @@
 import setuptools
 
 from fand import (__version__, __author__, __email__, __license__, __url__,
-                  __doc__)
+                  __doc__, __name__)
 
 setuptools.setup(
-    name='fand',
+    name=__name__,
     version=__version__,
     description=__doc__,
     long_description=open('README.rst', 'r').read(),

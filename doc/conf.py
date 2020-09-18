@@ -14,18 +14,30 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import fand
+
 
 # -- Project information -----------------------------------------------------
 
-project = 'fand'
-copyright = '2020, Louis Leseur'
-author = 'Louis Leseur'
+project = fand.__name__
+copyright = fand.__copyright__
+author = fand.__author__
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = fand.__version__
 
 
 # -- General configuration ---------------------------------------------------
+
+# Use index.rst
+master_doc = 'index'
+
+# Mock external libraries not needed for doc build
+autodoc_mock_imports = [
+    'pySMART',
+    'gpiozero',
+    'psutil',
+]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
