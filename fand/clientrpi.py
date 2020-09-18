@@ -20,7 +20,7 @@ from fand.exceptions import (
 __DOCSTRING__ = __doc__
 # Logger to use
 logger = logging.getLogger(__name__)
-# How much time to wait between updates
+#: How much time to wait between updates
 SLEEP_TIME: float = 60
 
 # Global variables
@@ -39,26 +39,24 @@ def _terminate() -> None:
 
 
 def add_gpio_device(device: Union['GpioRpm', 'GpioPwm']) -> None:
-    """Add a GPIO device to the set of managed GPIO devices"""
+    """Add a GPIO device to the set of managed GPIO devices
+
+    :param device:
+        GPIO device to add
+    """
     if util.terminating():
         raise TerminatingError("Cannot add new GPIO device while terminating")
     __GPIO_DEVICES__.add(device)
 
 
 class GpioRpm:
-    """Class to handle RPM tachometer from a fan
-    Attributes:
-    rpm: RPM value
-    __gpio: gpiozero.Button object for the RPM input
-    __count: count tachometer activation
-    __start_time: time at which __count started
+    """Class to handle RPM tachometer input from a fan
+
+    :param pin: GPIO pin number to use
+    :param managed: set to true to have the GPIO device automatically closed
+        when :func:`fand.util.terminate` is called
     """
     def __init__(self, pin: int, managed: bool = True) -> None:
-        """Constructor (does not handle gpiozero exceptions)
-        pin: GPIO pin number to use
-        managed: set to true to have the GPIO device automatically closed when
-            util.terminate() is called
-        """
         self.__pin = pin
         try:
             self.__gpio = gpiozero.Button(pin, pull_up=True)
@@ -68,6 +66,7 @@ class GpioRpm:
         except gpiozero.GPIOZeroWarning as warning:
             logger.warning("Ignoring GPIO warning %s", warning)
         self.__count, self.__start_time = 0, time.time()
+        #: RPM value
         self.rpm: float = 0
         if managed:
             add_gpio_device(self)
@@ -98,16 +97,12 @@ class GpioRpm:
 
 class GpioPwm:
     """Class to handle PWM output for a fan
-    Attributes:
-    pwm: PWM value, in percentage
-    __gpio: gpiozero.PWMLED object for the PWM output
+
+    :param pin: GPIO pin number to use
+    :param managed: set to true to have the GPIO device automatically closed
+        when :func:`fand.util.terminate` is called
     """
     def __init__(self, pin: int, managed: bool = True) -> None:
-        """Constructor (does not handle gpiozero exceptions)
-        pin: GPIO pin number to use
-        managed: set to true to have the GPIO device automatically closed when
-            util.terminate() is called
-        """
         self.__pin = pin
         try:
             self.__gpio = gpiozero.PWMLED(pin, frequency=25000,
@@ -125,7 +120,7 @@ class GpioPwm:
 
     @property
     def pwm(self) -> float:
-        """PWM output value, backend is gpiozero.PWMLED.value"""
+        """PWM output value, backend is :attr:`gpiozero.PWMLED.value`"""
         return self.__gpio.value * 100
 
     @pwm.setter
@@ -195,7 +190,14 @@ def daemon(
         address: str = socket.gethostname(),
         port: int = 9999,
         ) -> None:
-    """Main function of this module"""
+    """Main function of this module
+
+    :param gpio_pwm: GPIO device to use for PWM output
+    :param gpio_rpm: GPIO device to use for RPM input
+    :param shelf_name: Name of this shelf, used to communicate with the server
+    :param address: Server address or hostname
+    :param port: Port number to connect to
+    """
     def reconnect(server: Optional[socket.socket] = None,
                   error: Optional[str] = None,
                   notice: bool = True) -> socket.socket:

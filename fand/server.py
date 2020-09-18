@@ -37,14 +37,14 @@ __SHELVES__: Dict[str, 'Shelf'] = {}
 
 class Device:
     """Class handling devices to get temperature from
-    Attributes:
-    serial: serial number, string
-    position: drive positionning information, string
-    device: DeviceWrapper
+
+    :param serial: Device serial number
+    :param position: Device positionning information
     """
     def __init__(self, serial: str, position: str) -> None:
-        """Constructor"""
+        #: Device serial number
         self.serial = serial
+        #: Device positionning information
         self.position = position
         self.__device = self.find()
         logger.info("New device %s created", self)
@@ -79,7 +79,7 @@ class Device:
 
     @property
     def temperature(self) -> float:
-        """Get current drive temperature"""
+        """Current drive temperature"""
         return self.__device.temperature
 
     @property
@@ -193,15 +193,16 @@ class Device:
 
 class Shelf:
     """Class handling shelf data
-    Attributes:
-    identifier: shelf identifier, string
-    pwm: pwm speed of the shelf, float, percentage
-    rpm: rpm of the shelf, float
-    sleep_time: how many seconds to wait between each shelf update
-    __devices: dictionnary, key = device serial (string),
-        value = Device instance
-    __temperatures: dictionnary of dictionnaries
-        {DeviceType: {temperature in deg C: pwm speed in percent}}
+
+    :param idenifier: Shelf identifier (name)
+    :param devices: Iterable of Device objects
+    :param sleep_time: How many seconds to wait between each shelf update
+    :param hdd_temps: Dictionnary in the format ``temperature: speed``,
+        temperature in Celcius, speed in percent, must have a 0 deg key
+    :param ssd_temps: Dictionnary in the format ``temperature: speed``,
+        temperature in Celcius, speed in percent, must have a 0 deg key
+    :cpu_temps: Dictionnary in the format ``temperature: speed``,
+        temperature in Celcius, speed in percent, must have a 0 deg key
     """
     def __init__(
             self,
@@ -212,15 +213,8 @@ class Shelf:
             ssd_temps: Optional[Dict[float, float]] = None,
             cpu_temps: Optional[Dict[float, float]] = None,
             ) -> None:
-        """Constructor
-        idenifier: shelf id
-        devices: list of Device instances
-        hdd_temps: dictionnary in the format `temp in deg C: speed in percent`,
-            must have a 0 temperature key
-        ssd_temps: dictionnary in the same format as hdd_temps
-        cpu_temps: dictionnary in the same format as hdd_temps
-        """
         logger.debug("Creating new shelf %s", identifier)
+        #: Shelf identifier (name)
         self.identifier = identifier
         self.__devices = {device.serial: device for device in devices}
         self.__temperatures: Dict[Device.DeviceType, Dict[float, float]] = {
@@ -240,6 +234,7 @@ class Shelf:
         self.rpm = 0
         self.__pwm_override: Optional[float] = None
         self.pwm_expire = None
+        #: How many seconds to wait between each shelf update
         self.sleep_time = sleep_time
 
     def __str__(self) -> str:
@@ -262,8 +257,9 @@ class Shelf:
     @property
     def pwm(self) -> float:
         """Get shelf PWM value
-        Reading get the effective PWM value
-        Changing override the PWM value
+
+        Reading get the effective PWM value.
+        Changing override the PWM value.
         """
         now = datetime.datetime.now(datetime.timezone.utc)
         if self.__pwm_override is not None and \
@@ -279,9 +275,7 @@ class Shelf:
 
     @property
     def pwm_expire(self) -> Optional[datetime.datetime]:
-        """Set the PWM override expiration date
-        Contains a datetime.datetime object, defaults to local timezone
-        """
+        """Set the PWM override expiration date, defaults to local timezone"""
         return self.__pwm_expire
 
     @pwm_expire.setter
@@ -337,7 +331,10 @@ class Shelf:
 
 
 def add_shelf(shelf: Shelf) -> None:
-    """Add a Shelf to the dictionnary of known shelves"""
+    """Add a Shelf to the dictionnary of known shelves
+
+    :param shelf: Shelf to add
+    """
     __SHELVES__[shelf.identifier] = shelf
 
 
@@ -414,6 +411,7 @@ def _handle_set_pwm_expire(client_socket: socket.socket, shelf_id: str,
     com.send(client_socket, com.Request.ACK)
 
 
+#: Dictionnary assigning a Request to a function
 REQUEST_HANDLERS: Dict[com.Request, Callable] = {
     com.Request.PING: _handle_ping,
     com.Request.GET_PWM: _handle_get_pwm,
@@ -425,7 +423,10 @@ REQUEST_HANDLERS: Dict[com.Request, Callable] = {
 
 
 def listen_client(client_socket: socket.socket) -> None:
-    """Listen for client requests until the connection is closed"""
+    """Listen for client requests until the connection is closed
+
+    :param client_socket: Socket to listen to
+    """
     logger.info("Listening to %s", client_socket)
     while com.is_socket_open(client_socket):
         try:
@@ -502,7 +503,12 @@ def _read_config_temps(config_string: str) -> Dict[float, float]:
 
 def read_config(config_file: Optional[str] = _find_config_file()) \
         -> Iterable[Shelf]:
-    """Read configuration from a file, returns a set of shelves"""
+    """Read configuration from a file, returns an iterable of shelves
+
+    :param config_file: Configuration file to use, defaults to
+        the ``FAND_CONFIG`` environment variable
+        or ``./fand.ini`` or ``/etc/fand.ini``
+    """
     logger.debug("Reading configuration %s", config_file)
     if config_file is None:
         raise ServerNoConfigError("No configuration file found")
@@ -525,7 +531,13 @@ def read_config(config_file: Optional[str] = _find_config_file()) \
 
 
 def shelf_thread(shelf: Shelf) -> None:
-    """Main thread for shelf"""
+    """Monitor a shelf
+
+    Stops when :func:`fand.util.terminating()` is True or when an unexpected
+    exception occur.
+
+    :param shelf: Shelf to monitor
+    """
     logger.info("Monitoring %s", shelf)
     while not util.terminating():
         shelf.update()
@@ -553,7 +565,14 @@ def daemon(
         address: str = socket.gethostname(),
         port: int = 9999,
         ) -> None:
-    """Main function"""
+    """Main function
+
+    :param config_file: Configuration file to use, defaults to
+        the ``FAND_CONFIG`` environment variable
+        or ``./fand.ini`` or ``/etc/fand.ini``
+    :param address: Address of the interface to listen on, defaults to hostname
+    :param port: Port to listen on
+    """
     logger.debug("Starting server daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)
     signal.signal(signal.SIGTERM, util.default_signal_handler)

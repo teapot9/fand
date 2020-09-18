@@ -1,4 +1,4 @@
 graft config
 include LICENSE
-include README.md
+include README.rst
 include tox.ini

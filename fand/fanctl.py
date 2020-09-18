@@ -50,7 +50,7 @@ Known actions are:
   shelfrpm              Get the RPM value of a shelf
                         Syntax: shelfrpm SHELFNAME
 """
-# Datetime accepted string formats for datetime.datetime
+#: List of accepted string formats for :meth:`datetime.datetime.strptime`
 DATETIME_DATE_FORMATS = [
     "%c",
     "%x %X",
@@ -61,7 +61,7 @@ DATETIME_DATE_FORMATS = [
     "%Y-%m-%dT%H:%M:%S%Z",
     "%Y-%m-%dT%H:%M:%S.%f%Z",
 ]
-# Datetime accepted string formats for datetime.timedelta
+#: List of accepted regex formats for :class:`datetime.timedelta`
 DATETIME_DURATION_FORMATS = [
     r'^((?P<day>\d+?)d)?((?P<h>\d+?)h)?((?P<min>\d+?)m)?((?P<sec>\d+?)s)?$',
     r'^(?P<sec>\d+?)$',
@@ -203,6 +203,7 @@ def _action_set_pwm_expire_in(server: socket.socket, shelf_id: str,
         print("ok")
 
 
+#: Dictionnary associating action strings to their corresponding functions
 ACTION_DICT: Dict[str, Callable] = {
     'raw': _action_send_raw,
     'ping': _action_ping,
@@ -237,7 +238,13 @@ def send(
         address: str = socket.gethostname(),
         port: int = 9999,
         ) -> None:
-    """Main function of this module"""
+    """Main function of this module
+
+    :param action: Action to call
+    :param args: Arguments to send to the action
+    :param address: Server address
+    :param port: Server port
+    """
     logger.debug("Running action %s", action)
     signal.signal(signal.SIGINT, util.default_signal_handler)
     signal.signal(signal.SIGTERM, util.default_signal_handler)

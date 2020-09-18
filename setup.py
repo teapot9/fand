@@ -9,7 +9,7 @@ setuptools.setup(
     name='fand',
     version=__version__,
     description=__doc__,
-    long_description=open('README.md', 'r').read(),
+    long_description=open('README.rst', 'r').read(),
     long_description_content_type='text/markdown',
 
     author=__author__,
@@ -21,6 +21,7 @@ setuptools.setup(
     install_requires=[],
     extras_require={
         'test': ['flake8', 'pytest', 'tox', 'mypy'],
+        'doc': ['sphinx'],
         'server': ['pySMART', 'psutil'],
         'clientrpi-rpi-gpio': ['gpiozero', 'RPi.GPIO'],
         'clientrpi-pigpio': ['gpiozero', 'pigpio'],

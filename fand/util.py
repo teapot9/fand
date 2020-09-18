@@ -29,9 +29,11 @@ __WHEN_TERMINATE__: List[Tuple[Callable, Tuple, Dict]] = []
 
 def terminate(error: Optional[str] = None) -> None:
     """Function terminating the program
-    Sets the terminate flag (see terminating()), and does some cleanup
-    (see when_terminate())
-    error: error message to print (defaults to nothing)
+
+    Sets the terminate flag (see :func:`terminating`), and does some cleanup
+    (see :func:`when_terminate`)
+
+    :param error: Error message to print
     """
     global __TERMINATE__, __TERMINATE_ERROR__
     if error is not None:
@@ -46,7 +48,7 @@ def terminate(error: Optional[str] = None) -> None:
 
 
 def sys_exit() -> NoReturn:
-    """Exit the program with the error from terminate()"""
+    """Exit the program with the error from :func:`terminate` if any"""
     if not __TERMINATE__:
         terminate()
     if __TERMINATE_ERROR__ is None:
@@ -61,12 +63,20 @@ def terminating() -> bool:
 
 
 def when_terminate(function: Callable, *args: Any, **kwargs: Any) -> None:
-    """Add function to call when terminating"""
+    """Add function to call when terminating
+
+    :param function: Function to call
+    :param args: Arguments to call the function with
+    :param kwargs: Keyworded arguments to call the function with
+    """
     __WHEN_TERMINATE__.append((function, args, kwargs))
 
 
 def sleep(secs: float) -> None:
-    """Sleep secs seconds, stops if terminating"""
+    """Sleep some time, stops if terminating
+
+    :param secs: Number of seconds to sleep
+    """
     logger.debug("Waiting for %s seconds", secs)
     while secs > 0 and not terminating():
         time.sleep(1 if secs > 1 else secs)
@@ -86,7 +96,10 @@ def default_signal_handler(sig: signal.Signals, _: Any) -> None:
 
 
 def parse_args(parser: 'argparse.ArgumentParser') -> 'argparse.Namespace':
-    """Add common arguments, parse arguments, set root logger verbosity"""
+    """Add common arguments, parse arguments, set root logger verbosity
+
+    :param parser: Argument parser to use
+    """
     parser.add_argument('--version', '-V', action='version',
                         version='%(prog)s '+__version__)
     parser.add_argument('--address', '-a', default=socket.gethostname(),

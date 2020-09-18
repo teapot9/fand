@@ -32,7 +32,7 @@ def _terminate() -> None:
 
 
 class Request(enum.Enum):
-    """Standard request"""
+    """Enumeration of known requests"""
     ACK = 'ack'
     PING = 'ping'
     DISCONNECT = 'disconnect'
@@ -46,8 +46,11 @@ class Request(enum.Enum):
 
 def add_socket(sock: socket.socket) -> None:
     """Add sock to the set of managed sockets
-    It can be removed with reset_connection()
-    and will automatically be when util.terminate() is run
+
+    It can be removed with :func:`reset_connection`
+    and will automatically be when :func:`fand.util.terminate` is called.
+
+    :param sock: Socket to add
     """
     logger.debug("Adding socket %s", sock)
     if util.terminating():
@@ -56,12 +59,23 @@ def add_socket(sock: socket.socket) -> None:
 
 
 def is_socket_open(sock: socket.socket) -> bool:
-    """Return True if sock is currently managed by this module"""
+    """Returns True if sock is currently managed by this module
+
+    This will be False after a socket has been closed with
+    :func:`reset_connection`.
+
+    :param sock: Socket to test
+    """
     return sock in __SOCKETS__
 
 
 def send(sock: socket.socket, request: Request, *args: Any) -> None:
-    """Send a request to a remote socket"""
+    """Send a request to a remote socket
+
+    :param sock: Socket to send the request to
+    :param request: Request to send
+    :param args: Request arguments
+    """
     logger.debug("Sending %s to %s with arguments %s", request, sock, args)
 
     try:
@@ -86,7 +100,10 @@ def send(sock: socket.socket, request: Request, *args: Any) -> None:
 
 
 def recv(sock: socket.socket) -> Tuple[Request, Tuple]:
-    """Receive a request from a remote socket"""
+    """Receive a request from a remote socket, returns (request, args)
+
+    :param sock: Socket to receive the request and its arguments from
+    """
     logger.debug("Waiting for data from %s", sock)
 
     try:
@@ -124,7 +141,11 @@ def recv(sock: socket.socket) -> Tuple[Request, Tuple]:
 
 
 def connect(address: str, port: int) -> socket.socket:
-    """Connect to server and return socket"""
+    """Connect to server and returns socket
+
+    :param address: Server address
+    :param port: Server port
+    """
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.settimeout(10)
     try:
@@ -146,8 +167,10 @@ def reset_connection(
         notice: bool = True,
         ) -> None:
     """Closes a connection to a client
-    error: error to send (string, exception)
-    notice: send a notice about the reset to the remote socket
+
+    :param client_socket: Socket to close
+    :param error: Error to send
+    :param notice: Send a notice about the reset to the remote socket
     """
     logger.info("Closing connection to %s", client_socket)
     if not is_socket_open(client_socket):
