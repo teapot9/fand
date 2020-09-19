@@ -38,7 +38,7 @@ def terminate(error: Optional[str] = None) -> None:
     global __TERMINATE__, __TERMINATE_ERROR__
     if error is not None:
         logger.critical(error)
-    if __TERMINATE__:
+    if terminating():
         return
     logger.info("Terminating...")
     __TERMINATE__ = True
@@ -49,7 +49,7 @@ def terminate(error: Optional[str] = None) -> None:
 
 def sys_exit() -> NoReturn:
     """Exit the program with the error from :func:`terminate` if any"""
-    if not __TERMINATE__:
+    if not terminating():
         terminate()
     if __TERMINATE_ERROR__ is None:
         sys.exit(0)
