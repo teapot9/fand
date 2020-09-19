@@ -244,6 +244,8 @@ def send(
     :param args: Arguments to send to the action
     :param address: Server address
     :param port: Server port
+
+    :raises FanctlActionBadValue: Invalid action name or arguments
     """
     logger.debug("Running action %s", action)
     signal.signal(signal.SIGINT, util.default_signal_handler)

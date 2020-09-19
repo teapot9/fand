@@ -43,6 +43,9 @@ def add_gpio_device(device: Union['GpioRpm', 'GpioPwm']) -> None:
 
     :param device:
         GPIO device to add
+
+    :raises TerminatingError: Trying to add a socket but
+        :func:`fand.util.terminating` is True
     """
     if util.terminating():
         raise TerminatingError("Cannot add new GPIO device while terminating")
@@ -55,6 +58,8 @@ class GpioRpm:
     :param pin: GPIO pin number to use
     :param managed: set to true to have the GPIO device automatically closed
         when :func:`fand.util.terminate` is called
+
+    :raises GpioError: Received a :exc:`gpiozero.GPIOZeroError`
     """
     def __init__(self, pin: int, managed: bool = True) -> None:
         self.__pin = pin
@@ -86,7 +91,10 @@ class GpioRpm:
         logger.debug("Updating RPM value to %s", self.rpm)
 
     def close(self) -> None:
-        """Close the GPIO device"""
+        """Close the GPIO device
+
+        :raises GpioError: Received a :exc:`gpiozero.GPIOZeroError`
+        """
         try:
             self.__gpio.close()
         except gpiozero.GPIOZeroError as error:
@@ -101,6 +109,8 @@ class GpioPwm:
     :param pin: GPIO pin number to use
     :param managed: set to true to have the GPIO device automatically closed
         when :func:`fand.util.terminate` is called
+
+    :raises GpioError: Received a :exc:`gpiozero.GPIOZeroError`
     """
     def __init__(self, pin: int, managed: bool = True) -> None:
         self.__pin = pin
@@ -120,7 +130,10 @@ class GpioPwm:
 
     @property
     def pwm(self) -> float:
-        """PWM output value, backend is :attr:`gpiozero.PWMLED.value`"""
+        """PWM output value, backend is :attr:`gpiozero.PWMLED.value`
+
+        :raises GpioError: Received a :exc:`gpiozero.GPIOZeroError`
+        """
         return self.__gpio.value * 100
 
     @pwm.setter
@@ -135,7 +148,10 @@ class GpioPwm:
             logger.warning("Ignoring GPIO warning %s", warning)
 
     def close(self) -> None:
-        """Close the GPIO device"""
+        """Close the GPIO device
+
+        :raises GpioError: Received a :exc:`gpiozero.GPIOZeroError`
+        """
         try:
             self.__gpio.close()
         except gpiozero.GPIOZeroError as error:

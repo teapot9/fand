@@ -203,6 +203,8 @@ class Shelf:
         temperature in Celcius, speed in percent, must have a 0 deg key
     :cpu_temps: Dictionnary in the format ``temperature: speed``,
         temperature in Celcius, speed in percent, must have a 0 deg key
+
+    :raises ShelfTemperatureBadValue: One of the temps dictionnary is invalid
     """
     def __init__(
             self,
@@ -245,7 +247,10 @@ class Shelf:
 
     @property
     def rpm(self) -> float:
-        """Shelf fan speed RPM"""
+        """Shelf fan speed RPM
+
+        :raises ShelfRpmBadValue: Invalid value
+        """
         return self.__rpm
 
     @rpm.setter
@@ -260,6 +265,8 @@ class Shelf:
 
         Reading get the effective PWM value.
         Changing override the PWM value.
+
+        :raises ShelfPwmBadValue: Invalid value
         """
         now = datetime.datetime.now(datetime.timezone.utc)
         if self.__pwm_override is not None and \
@@ -275,7 +282,10 @@ class Shelf:
 
     @property
     def pwm_expire(self) -> Optional[datetime.datetime]:
-        """Set the PWM override expiration date, defaults to local timezone"""
+        """Set the PWM override expiration date, defaults to local timezone
+
+        :raises ShelfPwmExpireBadValue: Invalid value
+        """
         return self.__pwm_expire
 
     @pwm_expire.setter
@@ -508,6 +518,8 @@ def read_config(config_file: Optional[str] = _find_config_file()) \
     :param config_file: Configuration file to use, defaults to
         the ``FAND_CONFIG`` environment variable
         or ``./fand.ini`` or ``/etc/fand.ini``
+
+    :raises ServerNoConfigError: Configuration not found
     """
     logger.debug("Reading configuration %s", config_file)
     if config_file is None:
@@ -572,6 +584,8 @@ def daemon(
         or ``./fand.ini`` or ``/etc/fand.ini``
     :param address: Address of the interface to listen on, defaults to hostname
     :param port: Port to listen on
+
+    :raises ListeningError: Error while listening for new connections
     """
     logger.debug("Starting server daemon")
     signal.signal(signal.SIGINT, util.default_signal_handler)

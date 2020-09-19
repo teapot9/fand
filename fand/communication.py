@@ -51,6 +51,9 @@ def add_socket(sock: socket.socket) -> None:
     and will automatically be when :func:`fand.util.terminate` is called.
 
     :param sock: Socket to add
+
+    :raises TerminatingError: Trying to add a socket but
+        :func:`fand.util.terminating` is True
     """
     logger.debug("Adding socket %s", sock)
     if util.terminating():
@@ -75,6 +78,10 @@ def send(sock: socket.socket, request: Request, *args: Any) -> None:
     :param sock: Socket to send the request to
     :param request: Request to send
     :param args: Request arguments
+
+    :raises UnpicklableError: Given data cannot be pickled by :mod:`pickle`
+    :raises FandTimeoutError: Connection timed out
+    :raises SendReceiveError: Error while sending the data
     """
     logger.debug("Sending %s to %s with arguments %s", request, sock, args)
 
@@ -103,6 +110,12 @@ def recv(sock: socket.socket) -> Tuple[Request, Tuple]:
     """Receive a request from a remote socket, returns (request, args)
 
     :param sock: Socket to receive the request and its arguments from
+
+    :raises FandTimeoutError: Connection timed out
+    :raises SendReceiveError: Error while receiving the data
+    :raises FandConnectionResetError: No data received or
+        :data:`Request.DISCONNECT <Request>` received
+    :raises CorruptedDataError: Invalid data received
     """
     logger.debug("Waiting for data from %s", sock)
 
@@ -145,6 +158,9 @@ def connect(address: str, port: int) -> socket.socket:
 
     :param address: Server address
     :param port: Server port
+
+    :raises FandTimeoutError: Connection timed out
+    :raises ConnectionFailedError: Failed to connect to remote socket
     """
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.settimeout(10)
