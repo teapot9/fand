@@ -205,7 +205,7 @@ class Shelf:
         temperature in Celcius, speed in percent, must have a 0 deg key
     :param ssd_temps: Dictionnary in the format ``temperature: speed``,
         temperature in Celcius, speed in percent, must have a 0 deg key
-    :cpu_temps: Dictionnary in the format ``temperature: speed``,
+    :param cpu_temps: Dictionnary in the format ``temperature: speed``,
         temperature in Celcius, speed in percent, must have a 0 deg key
 
     :raises ShelfTemperatureBadValue: One of the temps dictionnary is invalid
