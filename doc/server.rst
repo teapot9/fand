@@ -77,6 +77,7 @@ Device
    :members: serial, position, find, update, temperature, type
 
 .. autoclass:: fand.server::Device.DeviceType
+   :members: NONE, HDD, SSD, CPU
    :show-inheritance:
 
 Shelf

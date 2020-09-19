@@ -89,9 +89,13 @@ class Device:
 
     class DeviceType(enum.Enum):
         """Enumeration of device types, to identify Device objects"""
+        #: Unknown device
         NONE = 0
+        #: HDD
         HDD = 1
+        #: SSD
         SSD = 2
+        #: System CPU
         CPU = 3
 
     class _DeviceWrapper(abc.ABC):
