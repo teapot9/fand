@@ -4,6 +4,7 @@ import unittest.mock as mock
 
 import pytest
 
+gpiozero = pytest.importorskip('gpiozero')
 client = pytest.importorskip('fand.clientrpi')
 
 
@@ -42,6 +43,13 @@ class TestGpioRpm:
             self.rpm.update()
         assert self.rpm.rpm == 3000
 
+    @mock.patch('gpiozero.Button')
+    def test_gpio_error(self, mock_button):
+        """test __init__() with a gpiozero error"""
+        mock_button.side_effect = gpiozero.GPIOZeroError()
+        with pytest.raises(client.GpioError):
+            client.GpioRpm(10)
+
 
 class TestGpioPwm:
     """GpioPwm class tests"""
@@ -73,6 +81,14 @@ class TestGpioPwm:
         with pytest.raises(ValueError):
             self.pwm.pwm = -4
         assert self.pwm.pwm == 100
+
+    @mock.patch('gpiozero.PWMLED')
+    def test_gpio_error(self, mock_pwmled):
+        """test __init__() with a gpiozero error"""
+        mock_pwmled.side_effect = gpiozero.GPIOZeroError()
+        with pytest.raises(client.GpioError):
+            client.GpioPwm(10)
+
 
 class TestAddGpioDevice:
     """add_gpio_device() tests"""
