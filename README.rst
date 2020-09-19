@@ -2,6 +2,26 @@
 fand
 ====
 
+.. image:: https://badge.fury.io/gh/lleseur%2Ffand.svg
+   :target: https://github.com/lleseur/fand
+   :alt: Github repository
+
+.. image:: https://badge.fury.io/py/fand.svg
+   :target: https://pypi.org/project/fand/
+   :alt: PyPI package
+
+.. image:: https://github.com/lleseur/fand/workflows/CI/badge.svg
+   :target: https://github.com/lleseur/fand/actions?query=workflow%3ACI
+   :alt: Continuous integration
+
+.. image:: https://github.com/lleseur/fand/workflows/QA/badge.svg
+   :target: https://github.com/lleseur/fand/actions?query=workflow%3AQA
+   :alt: Quality assurance
+
+.. image:: https://readthedocs.org/projects/fand/badge/?version=latest
+   :target: https://fand.readthedocs.io/en/latest/
+   :alt: Documentation status
+
 Simple daemon to control fan speed.
 
 About
@@ -32,7 +52,7 @@ fan speed or override a fan speed).
 Server
 ------
 
-The :mod:`server <fand.server>` module provide a daemon which monitor devices
+The server_ module provide a daemon which monitor devices
 temperatures and find a corresponding fan speed.
 It listens for connections from clients, and answers to requests.
 
@@ -48,7 +68,7 @@ other client to have access to the data from the server.
 Raspberry Pi client
 ^^^^^^^^^^^^^^^^^^^
 
-The :mod:`clientrpi <fand.clientrpi>` module will connect to a server and
+The clientrpi_ module will connect to a server and
 get a fan speed from it.
 It will then set the fan speed with a PWM signal through the GPIO interface
 of the Pi.
@@ -57,8 +77,20 @@ It will also tell the server the current real speed of the fans in rpm.
 Command-line interface
 ----------------------
 
-The :mod:`fanctl <fand.fanctl>` module is a command line interface to interact
+The fanctl_ module is a command line interface to interact
 with the server.
 It provides commands to get the fan speed and rpm, and also allow to override
 the fans speed.
+
+Documentation
+-------------
+
+The fand documentation is available at https://fand.readthedocs.io/.
+The installation_ chapter provides install instructions and compatibility
+informations.
+
+.. _server: https://fand.readthedocs.io/en/latest/server.html
+.. _clientrpi: https://fand.readthedocs.io/en/latest/clientrpi.html
+.. _fanctl: https://fand.readthedocs.io/en/latest/fanctl.html
+.. _installation: https://fand.readthedocs.io/en/latest/install.html
 
