@@ -39,6 +39,41 @@ __ https://github.com/joan2937/pigpio
 __ https://github.com/metachris/RPIO
 __ https://pypi.org/project/RPIO/
 
+Documentation
+-------------
+
+ - sphinx (homepage__, pypi__, source__, doc__): documentation generator
+
+__ http://sphinx-doc.org/
+__ https://pypi.org/project/Sphinx/
+__ https://github.com/sphinx-doc/sphinx
+__ http://sphinx-doc.org/
+
+Test
+----
+
+ - tox (homepage__, pypi__, source__, doc__): test management
+ - pytest (homepage__, pypi__, source__, doc__): testing
+ - flake8 (homepage__, pypi__, source__, doc__): quality assurance
+ - mypy (homepage__, pypi__, source__, doc__): type checking
+
+__ http://tox.readthedocs.org/
+__ https://pypi.org/project/tox/
+__ https://github.com/tox-dev/tox
+__ http://tox.readthedocs.org/
+__ https://docs.pytest.org/
+__ https://pypi.org/project/pytest/
+__ https://github.com/pytest-dev/pytest
+__ https://docs.pytest.org/
+__ https://gitlab.com/pycqa/flake8
+__ https://pypi.org/project/flake8/
+__ https://gitlab.com/pycqa/flake8
+__ https://flake8.pycqa.org/
+__ http://www.mypy-lang.org/
+__ https://pypi.org/project/mypy/
+__ https://github.com/python/mypy
+__ https://mypy.readthedocs.io/
+
 Non-Python dependencies
 =======================
 
@@ -103,6 +138,47 @@ You can cumulate extra dependencies:
 .. code-block:: console
 
    $ pip install fand[server,clientrpi-pigpio]
+
+Documentation
+-------------
+
+To build the documentation, you can install fand with:
+
+.. code-block:: console
+
+   $ pip install fand[doc]
+
+Download the fand source code:
+
+.. code-block:: console
+
+   $ pip download --no-deps --no-binary fand fand
+   $ tar -xf <filename>
+   $ cd <directory>
+
+And build the documentation with:
+
+.. code-block:: console
+
+   $ cd doc
+   $ make html
+
+The documentation will be built in the ``build`` directory.
+
+Testing
+-------
+
+To run CI or QA tests, you can install fand with:
+
+.. code-block:: console
+
+   $ pip install fand[test]
+
+Run the tests with:
+
+.. code-block:: console
+
+   $ tox
 
 Python version support
 ======================
