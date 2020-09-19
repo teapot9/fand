@@ -23,6 +23,25 @@ def mock_socket():
     yield sock
 
 
+class TestAddSocket:
+    """add_socket tests"""
+
+    def test_sanity(self):
+        """sanity checks"""
+        sock = mock.Mock()
+        com.add_socket(sock)
+        assert com.is_socket_open(sock)
+
+    @mock.patch('fand.util.terminating')
+    def test_terminating(self, mock_terminating):
+        """check when terminating is true"""
+        sock = mock.Mock()
+        mock_terminating.return_value = True
+        with pytest.raises(com.TerminatingError):
+            com.add_socket(sock)
+        assert not com.is_socket_open(sock)
+
+
 class TestSend:
     """send() tests"""
 
