@@ -35,6 +35,9 @@ Request
 -------
 
 .. autoclass:: Request
+   :members: ACK, PING, DISCONNECT, GET_PWM, SET_PWM, GET_RPM, SET_RPM,
+      SET_PWM_OVERRIDE, SET_PWM_EXPIRE
+   :show-inheritance:
 
 add_socket
 ----------

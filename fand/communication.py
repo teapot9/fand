@@ -33,14 +33,23 @@ def _terminate() -> None:
 
 class Request(enum.Enum):
     """Enumeration of known requests"""
+    #: Acknowledge a previously received :class:`Request`
     ACK = 'ack'
+    #: Request for a :data:`Request.ACK`
     PING = 'ping'
+    #: Notification of disconnection
     DISCONNECT = 'disconnect'
+    #: Request for a :data:`Request.SET_PWM` to get current PWM
     GET_PWM = 'get_pwm'
+    #: Give the current PWM
     SET_PWM = 'set_pwm'
+    #: Request for a :data:`Request.SET_RPM` to get current RPM
     GET_RPM = 'get_rpm'
+    #: Give the current RPM
     SET_RPM = 'set_rpm'
+    #: Override the PWM value
     SET_PWM_OVERRIDE = 'set_pwm_override'
+    #: Set the expiration date of the PWM override
     SET_PWM_EXPIRE = 'set_pwm_expire'
 
 
@@ -114,7 +123,7 @@ def recv(sock: socket.socket) -> Tuple[Request, Tuple]:
     :raises FandTimeoutError: Connection timed out
     :raises SendReceiveError: Error while receiving the data
     :raises FandConnectionResetError: No data received or
-        :data:`Request.DISCONNECT <Request>` received
+        :data:`Request.DISCONNECT` received
     :raises CorruptedDataError: Invalid data received
     """
     logger.debug("Waiting for data from %s", sock)
