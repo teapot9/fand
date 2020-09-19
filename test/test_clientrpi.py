@@ -73,3 +73,21 @@ class TestGpioPwm:
         with pytest.raises(ValueError):
             self.pwm.pwm = -4
         assert self.pwm.pwm == 100
+
+class TestAddGpioDevice:
+    """add_gpio_device() tests"""
+
+    def test_sanity(self):
+        """sanity checks"""
+        dev = mock.Mock()
+        client.add_gpio_device(dev)
+        assert dev in client.__GPIO_DEVICES__
+
+    @mock.patch('fand.util.terminating')
+    def test_terminating(self, mock_terminating):
+        """check TerminatingError"""
+        dev = mock.Mock()
+        mock_terminating.return_value = True
+        with pytest.raises(client.TerminatingError):
+            client.add_gpio_device(dev)
+        assert dev not in client.__GPIO_DEVICES__
