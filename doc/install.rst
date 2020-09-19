@@ -8,36 +8,52 @@ Python dependencies
 Server
 ------
 
- - pySMART (homepage__, pypi__): access drives SMART data
- - psutil (homepage__, pypi__): access CPU temperatures
+ - pySMART (homepage__, pypi__, source__): access drives SMART data
+ - psutil (homepage__, pypi__, source__, doc__): access CPU temperatures
 
 __ https://github.com/freenas/py-SMART
 __ https://pypi.org/project/pySMART/
+__ https://github.com/freenas/py-SMART
+
 __ https://github.com/giampaolo/psutil
 __ https://pypi.org/project/psutil/
+__ https://github.com/giampaolo/psutil
+__ https://psutil.readthedocs.io/
 
 Raspberry Pi client
 -------------------
 
- - gpiozero (homepage__, pypi__): access GPIO for PWM and tachometer signals
+ - gpiozero (homepage__, pypi__, source__, doc__):
+   access GPIO for PWM and tachometer signals
  - gpiozero's native pin factory does not currently supports PWM (sept 2020),
    you need one of the following packages:
 
-    - RPi.GPIO (homepage__, pypi__): does not supports hardware PWM,
-      only uses software PWM
-    - pigpio (homepage__, pypi__, github__): supports hardware PWM
-      but cannot work with Linux's lockdown LSM
-    - RPIO (homepage__, pypi__): unmaintained
+    - RPi.GPIO (homepage__, pypi__, source__, doc__):
+      does not supports hardware PWM, only uses software PWM
+    - pigpio (homepage__, pypi__, source__, doc__):
+      supports hardware PWM but cannot work with Linux's lockdown LSM
+    - RPIO (homepage__, pypi__, source__, doc__):
+      unmaintained
 
 __ https://github.com/gpiozero/gpiozero
 __ https://pypi.org/project/gpiozero/
-__ https://sourceforge.net/projects/raspberry-gpio-python/
+__ https://github.com/gpiozero/gpiozero
+__ https://gpiozero.readthedocs.io/
+
+__ https://sourceforge.net/p/raspberry-gpio-python/
 __ https://pypi.org/project/RPi.GPIO/
+__ https://sourceforge.net/p/raspberry-gpio-python/
+__ https://sourceforge.net/p/raspberry-gpio-python/wiki/Home/
+
 __ http://abyz.me.uk/rpi/pigpio/python.html
 __ https://pypi.org/project/pigpio/
 __ https://github.com/joan2937/pigpio
+__ http://abyz.me.uk/rpi/pigpio/
+
 __ https://github.com/metachris/RPIO
 __ https://pypi.org/project/RPIO/
+__ https://github.com/metachris/RPIO
+__ https://pythonhosted.org/RPIO/
 
 Documentation
 -------------
@@ -61,14 +77,17 @@ __ http://tox.readthedocs.org/
 __ https://pypi.org/project/tox/
 __ https://github.com/tox-dev/tox
 __ http://tox.readthedocs.org/
+
 __ https://docs.pytest.org/
 __ https://pypi.org/project/pytest/
 __ https://github.com/pytest-dev/pytest
 __ https://docs.pytest.org/
+
 __ https://gitlab.com/pycqa/flake8
 __ https://pypi.org/project/flake8/
 __ https://gitlab.com/pycqa/flake8
 __ https://flake8.pycqa.org/
+
 __ http://www.mypy-lang.org/
 __ https://pypi.org/project/mypy/
 __ https://github.com/python/mypy
@@ -80,9 +99,12 @@ Non-Python dependencies
 Server
 ------
 
-- smartmontools_: pySMART's backend
+- smartmontools (homepage__, source__, doc__):
+  pySMART's backend
 
-.. _smartmontools: https://www.smartmontools.org/
+__ https://www.smartmontools.org/
+__ https://www.smartmontools.org/browser
+__ https://www.smartmontools.org/wiki/TocDoc
 
 Installation
 ============
