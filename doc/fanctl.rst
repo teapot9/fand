@@ -28,26 +28,26 @@ Get the assigned fan speed for shelf 'shelf1':
 
 .. code-block:: console
 
-   $ fanctl shelfpwm shelf1
+   $ fanctl get-pwm shelf1
 
 
 Override fan speed of 'myshelf' to 100%:
 
 .. code-block:: console
 
-   $ fanctl shelfpw-override myshelf 100
+   $ fanctl set-pwm-override myshelf 100
 
 Remove override in 1 hour and 30 minutes:
 
 .. code-block:: console
 
-   $ fanctl shelfpwm-expire-in myshelf 1h30m
+   $ fanctl set-pwm-expire-in myshelf 1h30m
 
 Remove override now:
 
 .. code-block:: console
 
-   $ fanctl shelfpw-override myshelf none
+   $ fanctl set-pwm-override myshelf none
 
 Python API
 ==========

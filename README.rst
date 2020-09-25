@@ -38,15 +38,15 @@ fan speed or override a fan speed).
 
 .. code-block:: console
 
-   $ fanctl shelfrpm shelf1
+   $ fanctl get-rpm shelf1
    1500
-   $ fanctl shelfpwm shelf1
+   $ fanctl get-pwm shelf1
    50
-   $ fanctl shelfpwm-override shelf1 100
+   $ fanctl set-pwm-override shelf1 100
    ok
-   $ fanctl shelfpwm shelf1
+   $ fanctl get-pwm shelf1
    100
-   $ fanctl shelfrpm shelf1
+   $ fanctl get-rpm shelf1
    3000
 
 Server

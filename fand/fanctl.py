@@ -27,28 +27,28 @@ Known actions are:
                         Syntax: raw REQUEST REQUEST_ARGS
   ping                  Ping the server
                         Syntax: ping
-  shelfpwm              Get the PWM value of a shelf
-                        Syntax: shelfpwm SHELFNAME
-  shelfpwm-override     Override the PWM value of a shelf
-                        Syntax: shelfpwm-override SHELFNAME VALUE
+  get-pwm               Get the PWM value of a shelf
+                        Syntax: get-pwm SHELFNAME
+  set-pwm-override      Override the PWM value of a shelf
+                        Syntax: set-pwm-override SHELFNAME VALUE
                         VALUE: percentage (speed)
-  shelfpwm-expire-in    Set expiration date of PWM override
-                        Syntax: shelfpwm-expire-in SHELFNAME DURATION
+  set-pwm-expire-in     Set expiration date of PWM override
+                        Syntax: set-pwm-expire-in SHELFNAME DURATION
                         DURATION: how much time before expiration
                         Supported DURATION examples: '21d4h1m5s', '4h10s',
                         '7:22:59:00' (7d, 22h, 59min, 00s),
                         '4:22.5' (4min, 22.5s), '10' (10 seconds)
                         See DATETIME_DURATION_FORMATS for more informations.
-  shelfpwm-expire-on    Set expiration date of PWM override
-                        Syntax: shelfpwm-expire-on SHELFNAME DATE
+  set-pwm-expire-on     Set expiration date of PWM override
+                        Syntax: set-pwm-expire-on SHELFNAME DATE
                         DATE: date on which the override expire
                         Supported DATE examples: '2020-29-12T01:01:59',
                         '2020-29-12T01:01:59+01:00', '08/16/1988 21:30:00',
                         'Tue Aug 16 21:30:00 1988' (last two examples are
                         locale defined).
                         See DATETIME_DATE_FORMATS for more informations.
-  shelfrpm              Get the RPM value of a shelf
-                        Syntax: shelfrpm SHELFNAME
+  get-rpm               Get the RPM value of a shelf
+                        Syntax: get-rpm SHELFNAME
 """
 #: List of accepted string formats for :meth:`datetime.datetime.strptime`
 DATETIME_DATE_FORMATS = [
@@ -207,11 +207,11 @@ def _action_set_pwm_expire_in(server: socket.socket, shelf_id: str,
 ACTION_DICT: Dict[str, Callable] = {
     'raw': _action_send_raw,
     'ping': _action_ping,
-    'shelfpwm': _action_get_shelf_pwm,
-    'shelfrpm': _action_get_shelf_rpm,
-    'shelfpwm-override': _action_set_pwm_override,
-    'shelfpwm-expire-on': _action_set_pwm_expire_on,
-    'shelfpwm-expire-in': _action_set_pwm_expire_in,
+    'get-pwm': _action_get_shelf_pwm,
+    'get-rpm': _action_get_shelf_rpm,
+    'set-pwm-override': _action_set_pwm_override,
+    'set-pwm-expire-on': _action_set_pwm_expire_on,
+    'set-pwm-expire-in': _action_set_pwm_expire_in,
 }
 
 
