@@ -15,6 +15,17 @@ Two pins are used:
  - The RPM pin used to read the actual fan speed in RPM.
    It should be connected to the tachometer output of the fans.
 
+PWM backend
+-----------
+
+By default, :mod:`gpiozero` will use whatever supported library is
+installed.
+
+To manually set which backend to use, you can use the
+:envvar:`GPIOZERO_PIN_FACTORY` environment variable.
+
+See the :mod:`gpiozero.pins` documentation for more information.
+
 Examples
 --------
 
