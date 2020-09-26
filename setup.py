@@ -10,7 +10,7 @@ setuptools.setup(
     version=__version__,
     description=__doc__,
     long_description=open('README.rst', 'r').read(),
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/x-rst',
 
     author=__author__,
     author_email=__email__,
