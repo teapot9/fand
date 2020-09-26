@@ -39,7 +39,7 @@ setuptools.setup(
     scripts=['bin/fand'],
 
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 3 - Alpha",
         "Environment :: No Input/Output (Daemon)",
         "Intended Audience :: System Administrators",
         "License :: OSI Approved :: MIT License",
