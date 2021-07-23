@@ -194,7 +194,10 @@ To run CI or QA tests, you can install fand with:
 
 .. code-block:: console
 
-   $ pip install fand[test]
+   $ pip install fand[test,qa]
+
+You may want to also install ``server`` and ``clientrpi-base`` dependencies
+to test the corresponding modules.
 
 Run the tests with:
 
@@ -205,16 +208,15 @@ Run the tests with:
 Python version support
 ======================
 
-Officially supported Python versions
-------------------------------------
-
-fand should support any Python 3 version supported by upstream_.
+Officially supported Python_ versions
+-------------------------------------
 
  - Python 3.6
  - Python 3.7
  - Python 3.8
+ - Python 3.9
 
-.. _upstream: https://www.python.org/downloads/
+.. _Python: https://www.python.org/downloads/
 
 Officially supported Python implementations
 -------------------------------------------

@@ -2,27 +2,45 @@
 fand
 ====
 
-.. image:: https://badge.fury.io/gh/lleseur%2Ffand.svg
-   :target: https://github.com/lleseur/fand
+|github version badge|
+|pypi version badge|
+|ci badge|
+|qa badge|
+|doc badge|
+|py version badge|
+|py implementation badge|
+
+Simple daemon to control fan speed.
+
+Documentation is available at https://fand.readthedocs.io/.
+The installation_ chapter provides install instructions and compatibility
+informations.
+
+.. |github version badge| image:: https://badge.fury.io/gh/teapot9%2Ffand.svg
+   :target: https://github.com/teapot9/fand
    :alt: Github repository
 
-.. image:: https://badge.fury.io/py/fand.svg
+.. |pypi version badge| image:: https://badge.fury.io/py/fand.svg
    :target: https://pypi.org/project/fand/
    :alt: PyPI package
 
-.. image:: https://github.com/lleseur/fand/workflows/CI/badge.svg
-   :target: https://github.com/lleseur/fand/actions?query=workflow%3ACI
+.. |ci badge| image:: https://github.com/teapot9/fand/workflows/CI/badge.svg
+   :target: https://github.com/teapot9/fand/actions?query=workflow%3ACI
    :alt: Continuous integration
 
-.. image:: https://github.com/lleseur/fand/workflows/QA/badge.svg
-   :target: https://github.com/lleseur/fand/actions?query=workflow%3AQA
+.. |qa badge| image:: https://github.com/teapot9/fand/workflows/QA/badge.svg
+   :target: https://github.com/teapot9/fand/actions?query=workflow%3AQA
    :alt: Quality assurance
 
-.. image:: https://readthedocs.org/projects/fand/badge/?version=latest
+.. |doc badge| image:: https://readthedocs.org/projects/fand/badge/?version=latest
    :target: https://fand.readthedocs.io/en/latest/
    :alt: Documentation status
 
-Simple daemon to control fan speed.
+.. |py version badge| image:: https://img.shields.io/pypi/pyversions/fand.svg
+   :alt: Python version
+
+.. |py implementation badge| image:: https://img.shields.io/pypi/implementation/fand.svg
+   :alt: Python implementation
 
 About
 =====
@@ -81,13 +99,6 @@ The fanctl_ module is a command line interface to interact
 with the server.
 It provides commands to get the fan speed and rpm, and also allow to override
 the fans speed.
-
-Documentation
--------------
-
-The fand documentation is available at https://fand.readthedocs.io/.
-The installation_ chapter provides install instructions and compatibility
-informations.
 
 .. _server: https://fand.readthedocs.io/en/latest/server.html
 .. _clientrpi: https://fand.readthedocs.io/en/latest/clientrpi.html
