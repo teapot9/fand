@@ -215,6 +215,7 @@ Officially supported Python_ versions
  - Python 3.7
  - Python 3.8
  - Python 3.9
+ - Python 3.10
 
 .. _Python: https://www.python.org/downloads/
 
