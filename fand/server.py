@@ -43,6 +43,10 @@ class Device:
     :param serial: Device serial number
     :param position: Device positionning information
     """
+    serial: str
+    position: str
+    __device: 'Device._DeviceWrapper'
+
     def __init__(self, serial: str, position: str) -> None:
         #: Device serial number
         self.serial = serial
@@ -92,13 +96,13 @@ class Device:
     class DeviceType(enum.Enum):
         """Enumeration of device types, to identify Device objects"""
         #: Unknown device
-        NONE = 0
+        NONE = enum.auto()
         #: HDD
-        HDD = 1
+        HDD = enum.auto()
         #: SSD
-        SSD = 2
+        SSD = enum.auto()
         #: System CPU
-        CPU = 3
+        CPU = enum.auto()
 
     class _DeviceWrapper(abc.ABC):
         """Abstract class for device wrappers"""
@@ -123,6 +127,8 @@ class Device:
 
     class _HddWrapper(_DeviceWrapper):
         """Wrapper class for HDDs"""
+        pysmart: pysmart.Device
+
         def __init__(self, device: pysmart.Device) -> None:
             self.pysmart = device
 
@@ -143,6 +149,8 @@ class Device:
 
     class _SsdWrapper(_DeviceWrapper):
         """wrapper class for SSDs"""
+        pysmart: pysmart.Device
+
         def __init__(self, device: pysmart.Device) -> None:
             self.pysmart = device
 
@@ -200,7 +208,7 @@ class Device:
 class Shelf:
     """Class handling shelf data
 
-    :param idenifier: Shelf identifier (name)
+    :param identifier: Shelf identifier (name)
     :param devices: Iterable of Device objects
     :param sleep_time: How many seconds to wait between each shelf update
     :param hdd_temps: Dictionnary in the format ``temperature: speed``,
@@ -212,6 +220,13 @@ class Shelf:
 
     :raises ShelfTemperatureBadValue: One of the temps dictionnary is invalid
     """
+    identifier: str
+    __devices: Dict[str, Device]
+    __temperatures: Dict[Device.DeviceType, Dict[float, float]]
+    __pwm: float
+    __pwm_override: Optional[float]
+    sleep_time: float
+
     def __init__(
             self,
             identifier: str,
@@ -222,10 +237,9 @@ class Shelf:
             cpu_temps: Optional[Dict[float, float]] = None,
     ) -> None:
         logger.debug("Creating new shelf %s", identifier)
-        #: Shelf identifier (name)
         self.identifier = identifier
         self.__devices = {device.serial: device for device in devices}
-        self.__temperatures: Dict[Device.DeviceType, Dict[float, float]] = {
+        self.__temperatures = {
             Device.DeviceType.NONE: {0: 0},
             Device.DeviceType.HDD: {0: 0} if hdd_temps is None else hdd_temps,
             Device.DeviceType.SSD: {0: 0} if ssd_temps is None else ssd_temps,
@@ -238,11 +252,10 @@ class Shelf:
                 raise ShelfTemperatureBadValue(
                     f"{dev_type} has no 0 temperature key"
                 )
-        self.__pwm: float = 100
+        self.__pwm = 100
         self.rpm = 0
-        self.__pwm_override: Optional[float] = None
+        self.__pwm_override = None
         self.pwm_expire = None
-        #: How many seconds to wait between each shelf update
         self.sleep_time = sleep_time
 
     def __str__(self) -> str:

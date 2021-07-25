@@ -61,6 +61,12 @@ class GpioRpm:
 
     :raises GpioError: Received a :exc:`gpiozero.GPIOZeroError`
     """
+    __pin: int
+    __gpio: gpiozero.Button
+    __count: float
+    __start_time: float
+    rpm: float
+
     def __init__(self, pin: int, managed: bool = True) -> None:
         self.__pin = pin
         try:
@@ -72,7 +78,7 @@ class GpioRpm:
             logger.warning("Ignoring GPIO warning %s", warning)
         self.__count, self.__start_time = 0, time.time()
         #: RPM value
-        self.rpm: float = 0
+        self.rpm = 0
         if managed:
             add_gpio_device(self)
         logger.info("Created GPIO RPM device on pin %s", pin)
@@ -112,6 +118,9 @@ class GpioPwm:
 
     :raises GpioError: Received a :exc:`gpiozero.GPIOZeroError`
     """
+    __pin: int
+    __gpio: gpiozero.PWMLED
+
     def __init__(self, pin: int, managed: bool = True) -> None:
         self.__pin = pin
         try:

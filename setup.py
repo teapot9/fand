@@ -22,7 +22,7 @@ setuptools.setup(
     extras_require={
         'test': ['pytest'],
         'qa': ['flake8', 'flake8-import-order', 'mypy', 'tox'],
-        'doc': ['sphinx'],
+        'doc': ['sphinx', 'sphinx-rtd-theme'],
         'server': ['pySMART', 'psutil'],
         'clientrpi-base': ['gpiozero'],
         'clientrpi-rpi-gpio': ['gpiozero', 'RPi.GPIO'],
