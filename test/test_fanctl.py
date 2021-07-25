@@ -5,8 +5,8 @@ import unittest.mock as mock
 
 import pytest
 
-com = pytest.importorskip('fand.communication')
-fanctl = pytest.importorskip('fand.fanctl')
+import fand.communication as com
+import fand.fanctl as fanctl
 
 
 @pytest.fixture
@@ -81,7 +81,7 @@ class TestActionSetPwmExpireOn:
         '2000-04-30T21:30:59':
         datetime.datetime(2000, 4, 30, 21, 30, 59),
         '2050-12-31T00:40:21.55+02:00':
-        datetime.datetime(2050, 12, 31,  0, 40, 21, 550000,
+        datetime.datetime(2050, 12, 31, 0, 40, 21, 550000,
                           datetime.timezone(datetime.timedelta(hours=2))),
     }
     WRONG_VALUES = ['string', '-1-1']

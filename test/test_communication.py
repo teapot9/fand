@@ -4,7 +4,7 @@ import unittest.mock as mock
 
 import pytest
 
-com = pytest.importorskip('fand.communication')
+import fand.communication as com
 
 
 @pytest.fixture(autouse=True)

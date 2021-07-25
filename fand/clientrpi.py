@@ -9,10 +9,10 @@ from typing import (NoReturn, Optional, Set, Union)
 
 import gpiozero
 
-import fand.util as util
 import fand.communication as com
+import fand.util as util
 from fand.exceptions import (
-    GpioError, TerminatingError, ShelfPwmBadValue, CommunicationError
+    CommunicationError, GpioError, ShelfPwmBadValue, TerminatingError
 )
 
 # Constants
@@ -205,7 +205,7 @@ def daemon(
         shelf_name: str = socket.gethostname(),
         address: str = socket.gethostname(),
         port: int = 9999,
-        ) -> None:
+) -> None:
     """Main function of this module
 
     :param gpio_pwm: GPIO device to use for PWM output

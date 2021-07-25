@@ -9,10 +9,10 @@ import socket
 import sys
 from typing import (Any, Callable, Dict, NoReturn)
 
-import fand.util as util
 import fand.communication as com
+import fand.util as util
 from fand.exceptions import (
-    ShelfPwmExpireBadValue, FanctlActionBadValue, CommunicationError
+    CommunicationError, FanctlActionBadValue, ShelfPwmExpireBadValue,
 )
 
 # Constants
@@ -237,7 +237,7 @@ def send(
         *args: Any,
         address: str = socket.gethostname(),
         port: int = 9999,
-        ) -> None:
+) -> None:
     """Main function of this module
 
     :param action: Action to call

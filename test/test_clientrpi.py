@@ -4,8 +4,9 @@ import unittest.mock as mock
 
 import pytest
 
-gpiozero = pytest.importorskip('gpiozero')
+# Skip if clientrpi dependencies not installed
 client = pytest.importorskip('fand.clientrpi')
+import gpiozero  # noqa: E402, I100
 
 
 @pytest.fixture(autouse=True)

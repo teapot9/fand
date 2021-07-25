@@ -2,9 +2,7 @@
 
 import unittest.mock as mock
 
-import pytest
-
-util = pytest.importorskip('fand.util')
+import fand.util as util
 
 
 class TestTerminate:

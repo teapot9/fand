@@ -14,15 +14,17 @@ from typing import (Callable, Dict, Iterable, Iterator, List, NoReturn,
                     Optional)
 
 import psutil
+
 import pySMART as pysmart
 
-import fand.util as util
 import fand.communication as com
+import fand.util as util
 from fand.exceptions import (
-    ShelfNotFoundError, ShelfTemperatureBadValue, ShelfRpmBadValue,
-    ShelfPwmBadValue, ShelfPwmExpireBadValue, ServerNoConfigError,
-    ListeningError, CommunicationError
+    CommunicationError, ListeningError, ServerNoConfigError,
+    ShelfNotFoundError, ShelfPwmBadValue, ShelfPwmExpireBadValue,
+    ShelfRpmBadValue, ShelfTemperatureBadValue,
 )
+
 
 # Constants
 # Module docstring
@@ -218,7 +220,7 @@ class Shelf:
             hdd_temps: Optional[Dict[float, float]] = None,
             ssd_temps: Optional[Dict[float, float]] = None,
             cpu_temps: Optional[Dict[float, float]] = None,
-            ) -> None:
+    ) -> None:
         logger.debug("Creating new shelf %s", identifier)
         #: Shelf identifier (name)
         self.identifier = identifier
@@ -331,7 +333,8 @@ class Shelf:
         # pwm_list: list of effective PWM values
         pwm_list = []
         for dev_type, effective_temp in effective_temps.items():
-            pwm_list.append(max((
+            pwm_list.append(max(
+                (
                     speed
                     for temp, speed in self.__temperatures[dev_type].items()
                     if effective_temp >= temp
@@ -580,7 +583,7 @@ def daemon(
         config_file: Optional[str] = _find_config_file(),
         address: str = socket.gethostname(),
         port: int = 9999,
-        ) -> None:
+) -> None:
     """Main function
 
     :param config_file: Configuration file to use, defaults to

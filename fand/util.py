@@ -6,8 +6,9 @@ import signal
 import socket
 import sys
 import time
-from typing import (Any, Callable, List, NoReturn, Optional, Tuple, Dict,
-                    TYPE_CHECKING)
+from typing import (
+    Any, Callable, Dict, List, NoReturn, Optional, TYPE_CHECKING, Tuple,
+)
 
 from fand import __version__
 
@@ -101,7 +102,7 @@ def parse_args(parser: 'argparse.ArgumentParser') -> 'argparse.Namespace':
     :param parser: Argument parser to use
     """
     parser.add_argument('--version', '-V', action='version',
-                        version='%(prog)s '+__version__)
+                        version=f'%(prog)s {__version__}')
     parser.add_argument('--address', '-a', default=socket.gethostname(),
                         help="Server address, defaults to hostname")
     parser.add_argument('--port', '-p', default=9999, type=int,

@@ -8,8 +8,8 @@ from typing import (Any, Optional, Set, Tuple)
 
 import fand.util as util
 from fand.exceptions import (
-    TerminatingError, UnpicklableError, FandTimeoutError, SendReceiveError,
-    FandConnectionResetError, CorruptedDataError, ConnectionFailedError
+    ConnectionFailedError, CorruptedDataError, FandConnectionResetError,
+    FandTimeoutError, SendReceiveError, TerminatingError, UnpicklableError,
 )
 
 # Header = magic number + data size
@@ -190,7 +190,7 @@ def reset_connection(
         client_socket: socket.socket,
         error_msg: Optional[str] = None,
         notice: bool = True,
-        ) -> None:
+) -> None:
     """Closes a connection to a client
 
     :param client_socket: Socket to close

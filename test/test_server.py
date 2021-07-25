@@ -5,13 +5,15 @@ import unittest.mock as mock
 
 import pytest
 
+import fand.communication as com
+
+# Skip if server dependencies not installed
 server = pytest.importorskip('fand.server')
-com = pytest.importorskip('fand.communication')
+import psutil  # noqa: E402, I100
 
 
 def is_cpu_temp_available():
     """Returns True if CPU temperature monitoring is available"""
-    psutil = pytest.importorskip('psutil')
     return psutil.sensors_temperatures().get('coretemp') is not None
 
 

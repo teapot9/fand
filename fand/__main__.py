@@ -11,7 +11,7 @@ def entry_fand() -> None:
     sys.argv.insert(2, '--')
     parser = argparse.ArgumentParser(description=entry_fand.__doc__)
     parser.add_argument('--version', '-V', action='version',
-                        version='%(prog)s '+__version__)
+                        version=f'%(prog)s {__version__}')
     parser.add_argument(
         'service', type=str, choices=('server', 'fanctl', 'clientrpi'),
         help="Select which service to use",

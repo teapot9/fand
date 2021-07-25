@@ -2,27 +2,26 @@
 
 import setuptools
 
-from fand import (__version__, __author__, __email__, __license__, __url__,
-                  __doc__, __name__)
+import fand
 
 setuptools.setup(
-    name=__name__,
-    version=__version__,
-    description=__doc__,
+    name=fand.__name__,
+    version=fand.__version__,
+    description=fand.__doc__,
     long_description=open('README.rst', 'r').read(),
     long_description_content_type='text/x-rst',
 
-    author=__author__,
-    author_email=__email__,
-    license=__license__,
+    author=fand.__author__,
+    author_email=fand.__email__,
+    license=fand.__license__,
     license_files=['LICENSE'],
-    url=__url__,
+    url=fand.__url__,
 
     python_requires='>=3.6, <4',
     install_requires=[],
     extras_require={
         'test': ['pytest'],
-        'qa': ['flake8', 'mypy', 'tox'],
+        'qa': ['flake8', 'flake8-import-order', 'mypy', 'tox'],
         'doc': ['sphinx'],
         'server': ['pySMART', 'psutil'],
         'clientrpi-base': ['gpiozero'],
