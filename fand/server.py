@@ -641,3 +641,7 @@ def daemon(
                     raise ListeningError(
                         "Error while listening for clients"
                     ) from error
+
+
+if __name__ == '__main__':
+    main()

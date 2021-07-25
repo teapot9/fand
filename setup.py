@@ -34,12 +34,12 @@ setuptools.setup(
     packages=['fand'],
     entry_points={
         'console_scripts': [
+            'fand = fand.__main__:entry_fand',
             'fanctl = fand.fanctl:main',
             'fand-server = fand.server:main',
             'fand-clientrpi = fand.clientrpi:main',
         ],
     },
-    scripts=['bin/fand'],
 
     classifiers=[
         "Development Status :: 3 - Alpha",

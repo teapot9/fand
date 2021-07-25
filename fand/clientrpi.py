@@ -286,3 +286,7 @@ def daemon(
 
         logger.info("Updated: PWM = %s, RPM = %s", pwm_value, gpio_rpm.rpm)
         util.sleep(SLEEP_TIME)
+
+
+if __name__ == '__main__':
+    main()

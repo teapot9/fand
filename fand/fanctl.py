@@ -274,3 +274,7 @@ def send(
             logger.error("Connection reset by server during %s", action)
             util.terminate("Connection reset by server")
             raise
+
+
+if __name__ == '__main__':
+    main()
