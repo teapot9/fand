@@ -2,6 +2,7 @@
 name="fand-clientrpi"
 command="/usr/bin/env ${name}"
 command_args="--logfile /var/log/${name}.log ${FAND_OPTS}"
+start_stop_daemon_args="--respawn-delay 30 --respawn-max 120 --respawn-period 4000 --nicelevel 5"
 supervisor="supervise-daemon"
 description="Simple daemon to control fan speed (${name})"
 
