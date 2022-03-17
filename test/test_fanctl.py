@@ -9,6 +9,14 @@ import fand.communication as com
 import fand.fanctl as fanctl
 
 
+def sametime(d1: datetime.datetime, d2: datetime.datetime) -> bool:
+    """Test equality for datetime
+
+    This fixes a pypy3 bug where two identical datetime are not equal.
+    """
+    return d1.timestamp() == d2.timestamp()
+
+
 @pytest.fixture
 def mock_datetime():
     class MockDatetime(datetime.datetime):
@@ -136,7 +144,7 @@ class TestActionSetPwmExpireIn:
         for value, result in type(self).VALUES_TO_TEST.items():
             mock_datetime.now.return_value = self.now
             fanctl._action_set_pwm_expire_in(server_socket, shelf_id, value)
-            assert mock_send.call_args[0][3] == self.now + result
+            assert sametime(mock_send.call_args[0][3], self.now + result)
             mock_recv.assert_called_with(server_socket)
 
     @mock.patch('fand.communication.send')

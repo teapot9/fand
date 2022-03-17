@@ -84,7 +84,7 @@ def sleep(secs: float) -> None:
         secs -= 1
 
 
-def default_signal_handler(sig: signal.Signals, _: Any) -> None:
+def default_signal_handler(sig: int, _: Any) -> None:
     """Default signal handler"""
     if sig == signal.SIGINT:
         logger.warning("Received SIGINT, terminating")
