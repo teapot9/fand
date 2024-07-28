@@ -211,11 +211,13 @@ Python version support
 Officially supported Python_ versions
 -------------------------------------
 
- - Python 3.6
  - Python 3.7
  - Python 3.8
  - Python 3.9
  - Python 3.10
+ - Python 3.11
+ - Python 3.12
+ - Python 3.13
 
 .. _Python: https://www.python.org/downloads/
 
